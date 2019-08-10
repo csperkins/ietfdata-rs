@@ -41,18 +41,6 @@ fn deserialize_time<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
     Utc.datetime_from_str(&s, "%Y-%m-%dT%H:%M:%S").map_err(serde::de::Error::custom)
 }
 
-fn deserialize_email_uri<'de, D>(deserializer: D) -> Result<EmailUri, D::Error>
-    where D: Deserializer<'de>
-{
-    Ok(EmailUri(String::deserialize(deserializer)?))
-}
-
-fn deserialize_person_uri<'de, D>(deserializer: D) -> Result<PersonUri, D::Error>
-    where D: Deserializer<'de>
-{
-    Ok(PersonUri(String::deserialize(deserializer)?))
-}
-
 // ================================================================================================
 // IETF Datatracker types:
 
@@ -62,10 +50,8 @@ pub struct EmailUri(String);
 /// A mapping from email address to person in the IETF datatracker.
 #[derive(Deserialize, Debug)]
 pub struct Email {
-    #[serde(deserialize_with="deserialize_email_uri")]
     pub resource_uri : EmailUri,
     pub address      : String,
-    #[serde(deserialize_with="deserialize_person_uri")]
     pub person       : PersonUri,
     #[serde(deserialize_with="deserialize_time")]
     pub time         : DateTime<Utc>,
@@ -82,7 +68,6 @@ pub struct PersonUri(String);
 #[serde(deny_unknown_fields)]
 pub struct Person {
     pub id              : u64,
-    #[serde(deserialize_with="deserialize_person_uri")]
     pub resource_uri    : PersonUri,
     pub name            : String,
     pub name_from_draft : Option<String>,
