@@ -41,6 +41,64 @@ fn deserialize_time<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
     Utc.datetime_from_str(&s, "%Y-%m-%dT%H:%M:%S").map_err(serde::de::Error::custom)
 }
 
+// Generic types representing a paginated list of responses from the Datatracker:
+
+#[derive(Deserialize, Debug)]
+struct Meta {
+    total_count : u32,
+    limit       : u32,
+    offset      : u32,
+    previous    : Option<String>,
+    next        : Option<String>
+}
+
+#[derive(Deserialize, Debug)]
+struct Page<T> {
+    meta        : Meta,
+    objects     : Vec<T>
+}
+
+pub struct PaginatedList<'a, T> {
+    iter : <Vec<T> as IntoIterator>::IntoIter,
+    next : Option<String>,
+    dt   : &'a Datatracker
+}
+
+impl<'a, T> PaginatedList<'a, T> where for<'de> T: serde::Deserialize<'de> {
+    pub fn new(dt: &'a Datatracker, url : String) -> Self {
+        let mut res = dt.connection.get(&url).send().unwrap();
+        let pl : Page<T> = res.json().unwrap();
+
+        Self {
+            next : pl.meta.next.clone(),
+            iter : pl.objects.into_iter(),
+            dt   : dt
+        }
+    }
+}
+
+impl<'a, T> Iterator for PaginatedList<'a, T> where for<'de> T: serde::Deserialize<'de> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().or_else(||
+            match self.next.clone() {
+                Some(ref url_frag) => {
+                    let url = format!("https://datatracker.ietf.org/{}", url_frag);
+                    let mut res = self.dt.connection.get(&url).send().unwrap();
+                    let pl : Page<T> = res.json().unwrap();
+                    self.next = pl.meta.next.clone();
+                    self.iter = pl.objects.into_iter();
+                    self.iter.next()
+                }
+                None => {
+                    None
+                }
+            }
+        )
+    }
+}
+
 // ================================================================================================
 // IETF Datatracker types:
 
@@ -96,7 +154,6 @@ impl Datatracker {
         }
     }
 
-    /// Look-up a person by email address.
     pub fn email(&self, email : &str) -> Email {
         let url = format!("https://datatracker.ietf.org/api/v1/person/email/{}/", email);
         let mut res = self.connection.get(&url).send().unwrap();
@@ -109,6 +166,11 @@ impl Datatracker {
         let mut res = self.connection.get(&url).send().unwrap();
         let person : Person = res.json().unwrap();
         person
+    }
+
+    pub fn people<'a>(&'a self) -> PaginatedList<'a, Person> {
+        let url = format!("https://datatracker.ietf.org/api/v1/person/person/");
+        PaginatedList::<'a, Person>::new(self, url)
     }
 }
 
@@ -149,6 +211,17 @@ mod ietfdata_tests {
         assert_eq!(p.user,            Some("".to_string()));
         assert_eq!(p.consent,         Some(true));
     }
+
+/*
+    #[test]
+    fn test_people() {
+        let dt = Datatracker::new();
+        let people = dt.people();
+        for person in people.into_iter() {
+            println!("{:?}", person);
+        }
+    }
+*/
 }
 
 // ================================================================================================
