@@ -4,6 +4,14 @@ version = "0.1.0"
 authors = ["Colin Perkins <csp@csperkins.org>"]
 edition = "2018"
 
+description = "A Rust library to access the IETF Datatracker"
+homepage = "https://github.com/csperkins/ietfdata-rs"
+repository = "https://github.com/csperkins/ietfdata-rs"
+readme = "README"
+keywords = ["network", "networking", "protocol", "ietf"]
+categories = ["network-programming"]
+license = "BSD-2-Clause"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
