@@ -66,7 +66,9 @@ pub struct PaginatedList<'a, T> {
     dt   : &'a Datatracker
 }
 
-impl<'a, T> PaginatedList<'a, T> where for<'de> T: serde::Deserialize<'de> {
+impl<'a, T> PaginatedList<'a, T>
+    where for<'de> T: Deserialize<'de>
+{
     pub fn new(dt: &'a Datatracker, url : String) -> Self {
         let mut res = dt.connection.get(&url).send().unwrap();
         let pl : Page<T> = res.json().unwrap();
@@ -79,7 +81,9 @@ impl<'a, T> PaginatedList<'a, T> where for<'de> T: serde::Deserialize<'de> {
     }
 }
 
-impl<'a, T> Iterator for PaginatedList<'a, T> where for<'de> T: serde::Deserialize<'de> {
+impl<'a, T> Iterator for PaginatedList<'a, T>
+    where for<'de> T: Deserialize<'de>
+{
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -150,6 +154,14 @@ pub struct Datatracker {
 }
 
 impl Datatracker {
+    fn retrieve<T>(&self, url : &str) -> T
+        where for<'de> T: Deserialize<'de> 
+    {
+        let mut res = self.connection.get(url).send().unwrap();
+        let res : T = res.json().unwrap();
+        res
+    }
+
     pub fn new() -> Self {
         Datatracker {
             connection : reqwest::Client::new()
@@ -158,16 +170,12 @@ impl Datatracker {
 
     pub fn email(&self, email : &str) -> Email {
         let url = format!("https://datatracker.ietf.org/api/v1/person/email/{}/", email);
-        let mut res = self.connection.get(&url).send().unwrap();
-        let email : Email = res.json().unwrap();
-        email
+        self.retrieve::<Email>(&url)
     }
 
     pub fn person(&self, person_uri : &PersonUri) -> Person {
         let url = format!("https://datatracker.ietf.org/{}/", person_uri.0);
-        let mut res = self.connection.get(&url).send().unwrap();
-        let person : Person = res.json().unwrap();
-        person
+        self.retrieve::<Person>(&url)
     }
 
     pub fn people<'a>(&'a self) -> PaginatedList<'a, Person> {
