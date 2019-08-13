@@ -202,6 +202,11 @@ mod ietfdata_tests {
         assert_eq!(e.origin,       "author: draft-ietf-mmusic-rfc4566bis");
         assert_eq!(e.primary,      true);
         assert_eq!(e.active,       true);
+
+        // FIXME: This will panic!(). It shouldn't. Need to fix, and figure out the right return
+        // code: does it return Option<Result<...>> or Result<...> with a "no such record" code?
+        let e  = dt.email("nobody@example.com")?;
+
         Ok(())
     }
 
