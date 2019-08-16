@@ -7,5 +7,7 @@ ietfdata -- Access the IETF DataTracker and related resources
   This project contains a Rust library to interact with, and access, the
   IETF datatracker, RFC index, and related resources.
 
+  At present this is experimental, incomplete, and doesn't do anything
+  useful.
 
 
