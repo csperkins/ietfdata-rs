@@ -217,6 +217,11 @@ impl Datatracker {
         self.retrieve::<Person>(&url)
     }
 
+    pub fn person_from_email(&self, email : &str) -> Result<Person, DatatrackerError> {
+        let person = self.email(email)?.person;
+        self.person(&person)
+    }
+
     pub fn people<'a>(&'a self) -> PaginatedList<'a, Person> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/");
         PaginatedList::<'a, Person>::new(self, url)
@@ -234,6 +239,7 @@ mod ietfdata_tests {
     fn test_email() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
         let e  = dt.email("csp@csperkins.org")?;
+
         assert_eq!(e.resource_uri, EmailUri("/api/v1/person/email/csp@csperkins.org/".to_string()));
         assert_eq!(e.address,      "csp@csperkins.org");
         assert_eq!(e.person,       PersonUri("/api/v1/person/person/20209/".to_string()));
@@ -252,6 +258,7 @@ mod ietfdata_tests {
     fn test_person() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
         let p  = dt.person(&PersonUri("/api/v1/person/person/20209/".to_string()))?;
+
         assert_eq!(p.id,              20209);
         assert_eq!(p.resource_uri,    PersonUri("/api/v1/person/person/20209/".to_string()));
         assert_eq!(p.name,            "Colin Perkins");
@@ -264,6 +271,17 @@ mod ietfdata_tests {
         assert_eq!(p.photo_thumb,     Some("https://www.ietf.org/lib/dt/media/photo/Colin-Perkins-sm_PMIAhXi.jpg".to_string()));
         assert_eq!(p.user,            Some("".to_string()));
         assert_eq!(p.consent,         Some(true));
+        Ok(())
+    }
+
+    #[test]
+    fn test_person_from_email() -> Result<(), DatatrackerError> {
+        let dt = Datatracker::new();
+        let p  = dt.person_from_email("csp@csperkins.org")?;
+
+        assert_eq!(p.id,   20209);
+        assert_eq!(p.name, "Colin Perkins");
+
         Ok(())
     }
 

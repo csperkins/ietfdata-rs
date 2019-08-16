@@ -14,6 +14,10 @@
 
 # Change Log
 
+## v0.2.1 -- 2019-06-17
+
+ - Add person\_from\_email() method
+
 ## v0.2.0 -- 2019-08-16
 
  - Update API to return custom error and not panic!() on failure.
