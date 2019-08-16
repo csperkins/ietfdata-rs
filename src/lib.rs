@@ -72,8 +72,8 @@ impl<'a, T> PaginatedList<'a, T>
     where for<'de> T: Deserialize<'de>
 {
     pub fn new(dt: &'a Datatracker, url : String) -> Self {
-        let mut res = dt.connection.get(&url).send().unwrap();
-        let pl : Page<T> = res.json().unwrap();
+        let mut res = dt.connection.get(&url).send().unwrap(); // FIXME
+        let pl : Page<T> = res.json().unwrap();                // FIXME
 
         Self {
             next : pl.meta.next.clone(),
@@ -93,8 +93,8 @@ impl<'a, T> Iterator for PaginatedList<'a, T>
             match self.next.clone() {
                 Some(ref url_frag) => {
                     let url = format!("https://datatracker.ietf.org/{}", url_frag);
-                    let mut res = self.dt.connection.get(&url).send().unwrap();
-                    let pl : Page<T> = res.json().unwrap();
+                    let mut res = self.dt.connection.get(&url).send().unwrap(); // FIXME
+                    let pl : Page<T> = res.json().unwrap();                     // FIXME
                     self.next = pl.meta.next.clone();
                     self.iter = pl.objects.into_iter();
                     self.iter.next()
