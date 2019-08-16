@@ -32,6 +32,8 @@ extern crate serde_json;
 
 use chrono::prelude::*;
 use serde::{Deserialize, Deserializer};
+use std::error;
+use std::fmt;
 
 // ================================================================================================
 // Helper functions:
@@ -147,6 +149,39 @@ pub struct Person {
 }
 
 // ================================================================================================
+// The DatatrackerError type:
+
+#[derive(Debug)]
+pub enum DatatrackerError {
+    NotFound,
+    IoError(reqwest::Error)
+}
+
+impl fmt::Display for DatatrackerError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            DatatrackerError::NotFound => write!(f, "Not found"),
+            DatatrackerError::IoError(ref e) => e.fmt(f)
+        }
+    }
+}
+
+impl error::Error for DatatrackerError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match *self {
+            DatatrackerError::NotFound => None,
+            DatatrackerError::IoError(ref e) => Some(e)
+        }
+    }
+}
+
+impl From<reqwest::Error> for DatatrackerError {
+    fn from(err: reqwest::Error) -> DatatrackerError {
+        DatatrackerError::IoError(err)
+    }
+}
+
+// ================================================================================================
 // IETF Datatracker API:
 
 pub struct Datatracker {
@@ -154,7 +189,7 @@ pub struct Datatracker {
 }
 
 impl Datatracker {
-    fn retrieve<T>(&self, url : &str) -> Result<T, reqwest::Error>
+    fn retrieve<T>(&self, url : &str) -> Result<T, DatatrackerError>
         where for<'de> T: Deserialize<'de> 
     {
         let mut res = self.connection.get(url).send()?;
@@ -162,7 +197,7 @@ impl Datatracker {
             let res : T = res.json()?;
             Ok(res)
         } else {
-            panic!("Cannot retrieve {}", url); // FIXME: return error code
+            Err(DatatrackerError::NotFound)
         }
     }
 
@@ -172,12 +207,12 @@ impl Datatracker {
         }
     }
 
-    pub fn email(&self, email : &str) -> Result<Email, reqwest::Error> {
+    pub fn email(&self, email : &str) -> Result<Email, DatatrackerError> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/email/{}/", email);
         self.retrieve::<Email>(&url)
     }
 
-    pub fn person(&self, person_uri : &PersonUri) -> Result<Person, reqwest::Error> {
+    pub fn person(&self, person_uri : &PersonUri) -> Result<Person, DatatrackerError> {
         let url = format!("https://datatracker.ietf.org/{}/", person_uri.0);
         self.retrieve::<Person>(&url)
     }
@@ -196,7 +231,7 @@ mod ietfdata_tests {
     use super::*;
 
     #[test]
-    fn test_email() -> Result<(), reqwest::Error> {
+    fn test_email() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
         let e  = dt.email("csp@csperkins.org")?;
         assert_eq!(e.resource_uri, EmailUri("/api/v1/person/email/csp@csperkins.org/".to_string()));
@@ -207,15 +242,14 @@ mod ietfdata_tests {
         assert_eq!(e.primary,      true);
         assert_eq!(e.active,       true);
 
-        // FIXME: This will panic!(). It shouldn't. Need to fix, and figure out the right return
-        // code: does it return Option<Result<...>> or Result<...> with a "no such record" code?
-        let e  = dt.email("nobody@example.com")?;
+        // Lookup a non-existing address; this should fail
+        assert!(dt.email("nobody@example.com").is_err());
 
         Ok(())
     }
 
     #[test]
-    fn test_person() -> Result<(), reqwest::Error> {
+    fn test_person() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
         let p  = dt.person(&PersonUri("/api/v1/person/person/20209/".to_string()))?;
         assert_eq!(p.id,              20209);
