@@ -158,8 +158,12 @@ impl Datatracker {
         where for<'de> T: Deserialize<'de> 
     {
         let mut res = self.connection.get(url).send()?;
-        let res : T = res.json()?;
-        Ok(res)
+        if res.status().is_success() {
+            let res : T = res.json()?;
+            Ok(res)
+        } else {
+            panic!("Cannot retrieve {}", url); // FIXME: return error code
+        }
     }
 
     pub fn new() -> Self {
