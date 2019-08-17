@@ -207,6 +207,11 @@ impl Datatracker {
         }
     }
 
+    /// Lookup information about an email address.
+    ///
+    /// This returns the information held about a particular email address.
+    /// If you want information about the person with a particular address,
+    /// use `person_from_email()`.
     pub fn email(&self, email : &str) -> Result<Email, DatatrackerError> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/email/{}/", email);
         self.retrieve::<Email>(&url)
