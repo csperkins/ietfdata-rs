@@ -231,6 +231,16 @@ impl Datatracker {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/");
         PaginatedList::<'a, Person>::new(self, url)
     }
+
+    pub fn people_with_name<'a>(&'a self, name: &'a str) -> PaginatedList<'a, Person> {
+        let url = format!("https://datatracker.ietf.org/api/v1/person/person/?name={}", name);
+        PaginatedList::<'a, Person>::new(self, url)
+    }
+
+    pub fn people_with_name_containing<'a>(&'a self, name_contains: &'a str) -> PaginatedList<'a, Person> {
+        let url = format!("https://datatracker.ietf.org/api/v1/person/person/?name__contains={}", name_contains);
+        PaginatedList::<'a, Person>::new(self, url)
+    }
 }
 
 // ================================================================================================
@@ -300,6 +310,28 @@ mod ietfdata_tests {
         }
     }
 */
+
+    #[test]
+    fn test_people_with_name() -> Result<(), DatatrackerError> {
+        let dt = Datatracker::new();
+        let people : Vec<Person> = dt.people_with_name("Colin Perkins").collect();
+
+        assert_eq!(people[0].id,   20209);
+        assert_eq!(people[0].name, "Colin Perkins");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_people_with_name_containing() -> Result<(), DatatrackerError> {
+        let dt = Datatracker::new();
+        let people : Vec<Person> = dt.people_with_name_containing("Perkins").collect();
+
+        // As of 17-08-2019, there are six people named Perkins in the datatracker.
+        assert_eq!(people.len(), 6);
+
+        Ok(())
+    }
 }
 
 // ================================================================================================
