@@ -14,9 +14,16 @@
 
 # Change Log
 
-## v0.2.1 -- 2019-06-17
+## v0.2.2 -- 2019-08-17
 
- - Add person\_from\_email() method
+ - Add `people_with_name()` method
+ - Add `people_with_name_containing()` method
+
+
+## v0.2.1 -- 2019-08-17
+
+ - Add `person_from_email()` method
+
 
 ## v0.2.0 -- 2019-08-16
 
