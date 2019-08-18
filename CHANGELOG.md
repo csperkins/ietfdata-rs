@@ -14,9 +14,10 @@
 
 # Change Log
 
-## v???
+## v0.2.3 -- 2019-08-18
 
  - Add `people_between()` method
+ - Add `person_aliases()` method and Alias type
  - Add `person_history()` method and HistoricalPerson type
  - Add `email_history_for_address()` and `email_history_for_person()`
    methods and HistoricalEmail type

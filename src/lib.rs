@@ -223,6 +223,19 @@ pub struct HistoricalPerson {
     pub history_date          : DateTime<Utc>,
 }
 
+#[derive(Deserialize, Debug, Eq, PartialEq)]
+pub struct AliasUri(String);
+
+/// An alias in the IETF datatracker.
+#[derive(Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct Alias {
+    pub id           : u64,
+    pub resource_uri : AliasUri,
+    pub person       : PersonUri,
+    pub name         : String,
+}
+
 // =================================================================================================================================
 // The DatatrackerError type:
 
@@ -325,6 +338,11 @@ impl Datatracker {
     pub fn person_from_email(&self, email : &str) -> Result<Person, DatatrackerError> {
         let person = self.email(email)?.person;
         self.person(&person)
+    }
+
+    pub fn person_aliases<'a>(&'a self, person : &'a Person) -> PaginatedList<Alias> {
+        let url = format!("https://datatracker.ietf.org/api/v1/person/alias/?person={}", person.id);
+        PaginatedList::<'a, Alias>::new(self, url)
     }
 
     pub fn person_history<'a>(&'a self, person : &'a Person) -> PaginatedList<HistoricalPerson> {
@@ -491,6 +509,20 @@ mod ietfdata_tests {
 
         // As of 2019-08-18, there are two history items for csp@csperkins.org
         assert_eq!(h.len(), 2);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_person_aliases() -> Result<(), DatatrackerError> {
+        let dt = Datatracker::new();
+        let p  = dt.person_from_email("csp@csperkins.org")?;
+        let h  : Vec<Alias> = dt.person_aliases(&p).collect();
+
+        // As of 2019-08-18, there are two aliases for csp@csperkins.org
+        assert_eq!(h.len(), 2);
+        assert_eq!(h[0].name, "Dr. Colin Perkins");
+        assert_eq!(h[1].name, "Colin Perkins");
 
         Ok(())
     }
