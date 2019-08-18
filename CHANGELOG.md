@@ -14,9 +14,10 @@
 
 # Change Log
 
-## v???
+## v0.2.4 -- 2019-08-18
 
- - 
+ - Rename 'Alias' to 'PersonAlias' since there will be document aliases
+   added later.
 
 
 ## v0.2.3 -- 2019-08-18

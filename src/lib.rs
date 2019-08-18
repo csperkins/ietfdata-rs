@@ -224,14 +224,14 @@ pub struct HistoricalPerson {
 }
 
 #[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct AliasUri(String);
+pub struct PersonAliasUri(String);
 
 /// An alias in the IETF datatracker.
 #[derive(Deserialize, Debug)]
 #[serde(deny_unknown_fields)]
-pub struct Alias {
+pub struct PersonAlias {
     pub id           : u64,
-    pub resource_uri : AliasUri,
+    pub resource_uri : PersonAliasUri,
     pub person       : PersonUri,
     pub name         : String,
 }
@@ -338,9 +338,9 @@ impl Datatracker {
         self.person(&person)
     }
 
-    pub fn person_aliases<'a>(&'a self, person : &'a Person) -> PaginatedList<Alias> {
+    pub fn person_aliases<'a>(&'a self, person : &'a Person) -> PaginatedList<PersonAlias> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/alias/?person={}", person.id);
-        PaginatedList::<'a, Alias>::new(self, url)
+        PaginatedList::<'a, PersonAlias>::new(self, url)
     }
 
     pub fn person_history<'a>(&'a self, person : &'a Person) -> PaginatedList<HistoricalPerson> {
@@ -634,7 +634,7 @@ mod ietfdata_tests {
     fn test_person_aliases() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
         let p  = dt.person_from_email("csp@csperkins.org")?;
-        let h  : Vec<Alias> = dt.person_aliases(&p).collect();
+        let h  : Vec<PersonAlias> = dt.person_aliases(&p).collect();
 
         // As of 2019-08-18, there are two aliases for csp@csperkins.org
         assert_eq!(h.len(), 2);
