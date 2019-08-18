@@ -297,7 +297,6 @@ impl Datatracker {
 
     // ----------------------------------------------------------------------------------------------------------------------------
     // Datatracker API endpoints returning information about email addresses:
-    //
     // * https://datatracker.ietf.org/api/v1/person/email/csp@csperkins.org/
     // * https://datatracker.ietf.org/api/v1/person/historicalemail/
 
@@ -323,11 +322,10 @@ impl Datatracker {
 
     // ----------------------------------------------------------------------------------------------------------------------------
     // Datatracker API endpoints returning information about people:
-    //
     // * https://datatracker.ietf.org/api/v1/person/person/20209/
     // * https://datatracker.ietf.org/api/v1/person/person/
     // * https://datatracker.ietf.org/api/v1/person/historicalperson/
-    //   https://datatracker.ietf.org/api/v1/person/alias/
+    // * https://datatracker.ietf.org/api/v1/person/alias/
 
     pub fn person(&self, person_uri : &PersonUri) -> Result<Person, DatatrackerError> {
         assert!(person_uri.0.starts_with("/api/v1/person/person/"));
@@ -371,7 +369,123 @@ impl Datatracker {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?time__gte={}&time__lt={}", &s, &b);
         PaginatedList::<'a, Person>::new(self, url)
     }
-}
+
+    // ----------------------------------------------------------------------------------------------------------------------------
+    // Datatracker API endpoints returning information about documents:
+    //   https://datatracker.ietf.org/api/v1/doc/document/                        - list of documents
+    //   https://datatracker.ietf.org/api/v1/doc/document/draft-ietf-avt-rtp-new/ - info about document
+    //   https://datatracker.ietf.org/api/v1/doc/docalias/?name=/                 - draft that became the given RFC
+    //   https://datatracker.ietf.org/api/v1/doc/state/                           - Types of state a document can be in
+    //   https://datatracker.ietf.org/api/v1/doc/statetype/                       - Possible types of state for a document
+    //   https://datatracker.ietf.org/api/v1/doc/docevent/                        - list of document events
+    //   https://datatracker.ietf.org/api/v1/doc/docevent/?doc=...                - events for a document
+    //   https://datatracker.ietf.org/api/v1/doc/docevent/?by=...                 - events by a person (as /api/v1/person/person)
+    //   https://datatracker.ietf.org/api/v1/doc/docevent/?time=...               - events by time
+    //   https://datatracker.ietf.org/api/v1/doc/documentauthor/?document=...     - authors of a document
+    //   https://datatracker.ietf.org/api/v1/doc/documentauthor/?person=...       - documents by person (as /api/v1/person/person)
+    //   https://datatracker.ietf.org/api/v1/doc/documentauthor/?email=...        - documents by person with particular email
+    //   https://datatracker.ietf.org/api/v1/doc/dochistory/
+    //   https://datatracker.ietf.org/api/v1/doc/dochistoryauthor/
+    //   https://datatracker.ietf.org/api/v1/doc/docreminder/
+    //   https://datatracker.ietf.org/api/v1/doc/documenturl/
+    //   https://datatracker.ietf.org/api/v1/doc/statedocevent/                   - subset of /api/v1/doc/docevent/; same parameters
+    //   https://datatracker.ietf.org/api/v1/doc/ballotdocevent/                  -               "                "
+    //   https://datatracker.ietf.org/api/v1/doc/newrevisiondocevent/             -               "                "
+    //   https://datatracker.ietf.org/api/v1/doc/submissiondocevent/              -               "                "
+    //   https://datatracker.ietf.org/api/v1/doc/writeupdocevent/                 -               "                "
+    //   https://datatracker.ietf.org/api/v1/doc/consensusdocevent/               -               "                "
+    //   https://datatracker.ietf.org/api/v1/doc/ballotpositiondocevent/          -               "                "
+    //   https://datatracker.ietf.org/api/v1/doc/reviewrequestdocevent/           -               "                "
+    //   https://datatracker.ietf.org/api/v1/doc/lastcalldocevent/                -               "                "
+    //   https://datatracker.ietf.org/api/v1/doc/telechatdocevent/                -               "                "
+    //   https://datatracker.ietf.org/api/v1/doc/relateddocument/?source=...      - documents that source draft relates to (references, replaces, etc)
+    //   https://datatracker.ietf.org/api/v1/doc/relateddocument/?target=...      - documents that relate to target draft
+    //   https://datatracker.ietf.org/api/v1/doc/ballottype/                      - Types of ballot that can be issued on a document
+    //   https://datatracker.ietf.org/api/v1/doc/relateddochistory/
+    //   https://datatracker.ietf.org/api/v1/doc/initialreviewdocevent/
+    //   https://datatracker.ietf.org/api/v1/doc/deletedevent/
+    //   https://datatracker.ietf.org/api/v1/doc/addedmessageevent/
+    //   https://datatracker.ietf.org/api/v1/doc/editedauthorsdocevent/
+
+
+
+    // ----------------------------------------------------------------------------------------------------------------------------
+    // Datatracker API endpoints returning information about names:
+    //   https://datatracker.ietf.org/api/v1/name/doctypename/
+    //   https://datatracker.ietf.org/api/v1/name/streamname/
+    //   https://datatracker.ietf.org/api/v1/name/dbtemplatetypename/
+    //   https://datatracker.ietf.org/api/v1/name/docrelationshipname/
+    //   https://datatracker.ietf.org/api/v1/name/doctagname/
+    //   https://datatracker.ietf.org/api/v1/name/docurltagname/
+    //   https://datatracker.ietf.org/api/v1/name/groupstatename/
+    //   https://datatracker.ietf.org/api/v1/name/formallanguagename/
+    //   https://datatracker.ietf.org/api/v1/name/timeslottypename/
+    //   https://datatracker.ietf.org/api/v1/name/liaisonstatementeventtypename/
+    //   https://datatracker.ietf.org/api/v1/name/stdlevelname/
+    //   https://datatracker.ietf.org/api/v1/name/ballotpositionname/
+    //   https://datatracker.ietf.org/api/v1/name/reviewrequeststatename/
+    //   https://datatracker.ietf.org/api/v1/name/groupmilestonestatename/
+    //   https://datatracker.ietf.org/api/v1/name/iprlicensetypename/
+    //   https://datatracker.ietf.org/api/v1/name/feedbacktypename/
+    //   https://datatracker.ietf.org/api/v1/name/reviewtypename/
+    //   https://datatracker.ietf.org/api/v1/name/iprdisclosurestatename/
+    //   https://datatracker.ietf.org/api/v1/name/reviewresultname/
+    //   https://datatracker.ietf.org/api/v1/name/liaisonstatementstate/
+    //   https://datatracker.ietf.org/api/v1/name/roomresourcename/
+    //   https://datatracker.ietf.org/api/v1/name/liaisonstatementtagname/
+    //   https://datatracker.ietf.org/api/v1/name/topicaudiencename/
+    //   https://datatracker.ietf.org/api/v1/name/continentname/
+    //   https://datatracker.ietf.org/api/v1/name/nomineepositionstatename/
+    //   https://datatracker.ietf.org/api/v1/name/importantdatename/
+    //   https://datatracker.ietf.org/api/v1/name/liaisonstatementpurposename/
+    //   https://datatracker.ietf.org/api/v1/name/constraintname/
+    //   https://datatracker.ietf.org/api/v1/name/sessionstatusname/
+    //   https://datatracker.ietf.org/api/v1/name/ipreventtypename/
+    //   https://datatracker.ietf.org/api/v1/name/agendatypename/
+    //   https://datatracker.ietf.org/api/v1/name/docremindertypename/
+    //   https://datatracker.ietf.org/api/v1/name/intendedstdlevelname/
+    //   https://datatracker.ietf.org/api/v1/name/countryname/
+    //   https://datatracker.ietf.org/api/v1/name/grouptypename/
+    //   https://datatracker.ietf.org/api/v1/name/draftsubmissionstatename/
+    //   https://datatracker.ietf.org/api/v1/name/rolename/
+
+
+
+    // ----------------------------------------------------------------------------------------------------------------------------
+    // Datatracker API endpoints returning information about working groups:
+    //   https://datatracker.ietf.org/api/v1/group/group/                               - list of groups
+    //   https://datatracker.ietf.org/api/v1/group/group/2161/                          - info about group 2161
+    //   https://datatracker.ietf.org/api/v1/group/grouphistory/?group=2161             - history
+    //   https://datatracker.ietf.org/api/v1/group/groupurl/?group=2161                 - URLs
+    //   https://datatracker.ietf.org/api/v1/group/groupevent/?group=2161               - events
+    //   https://datatracker.ietf.org/api/v1/group/groupmilestone/?group=2161           - Current milestones
+    //   https://datatracker.ietf.org/api/v1/group/groupmilestonehistory/?group=2161    - Previous milestones
+    //   https://datatracker.ietf.org/api/v1/group/milestonegroupevent/?group=2161      - changed milestones
+    //   https://datatracker.ietf.org/api/v1/group/role/?group=2161                     - The current WG chairs and ADs of a group
+    //   https://datatracker.ietf.org/api/v1/group/role/?person=20209                   - Groups a person is currently involved with
+    //   https://datatracker.ietf.org/api/v1/group/role/?email=csp@csperkins.org        - Groups a person is currently involved with
+    //   https://datatracker.ietf.org/api/v1/group/rolehistory/?group=2161              - The previous WG chairs and ADs of a group
+    //   https://datatracker.ietf.org/api/v1/group/rolehistory/?person=20209            - Groups person was previously involved with
+    //   https://datatracker.ietf.org/api/v1/group/rolehistory/?email=csp@csperkins.org - Groups person was previously involved with
+    //   https://datatracker.ietf.org/api/v1/group/changestategroupevent/?group=2161    - Group state changes
+    //   https://datatracker.ietf.org/api/v1/group/groupstatetransitions                - ???
+
+
+
+    // ----------------------------------------------------------------------------------------------------------------------------
+    // Datatracker API endpoints returning information about meetings:
+    //   https://datatracker.ietf.org/api/v1/meeting/meeting/                        - list of meetings
+    //   https://datatracker.ietf.org/api/v1/meeting/meeting/747/                    - information about meeting number 747
+    //   https://datatracker.ietf.org/api/v1/meeting/session/                        - list of all sessions in meetings
+    //   https://datatracker.ietf.org/api/v1/meeting/session/25886/                  - a session in a meeting
+    //   https://datatracker.ietf.org/api/v1/meeting/session/?meeting=747            - sessions in meeting number 747
+    //   https://datatracker.ietf.org/api/v1/meeting/session/?meeting=747&group=2161 - sessions in meeting number 747 for group 2161
+    //   https://datatracker.ietf.org/api/v1/meeting/schedtimesessassignment/59003/  - a schededuled session within a meeting
+    //   https://datatracker.ietf.org/api/v1/meeting/timeslot/9480/                  - a time slot within a meeting (time, duration, location)
+    //   https://datatracker.ietf.org/api/v1/meeting/schedule/791/                   - a draft of the meeting agenda
+    //   https://datatracker.ietf.org/api/v1/meeting/room/537/                       - a room at a meeting
+    //   https://datatracker.ietf.org/api/v1/meeting/floorplan/14/                   - floor plan for a meeting venue
+    //   https://datatracker.ietf.org/api/v1/name/meetingtypename/
 
 // =================================================================================================================================
 // Test suite:
