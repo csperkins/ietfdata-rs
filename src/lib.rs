@@ -56,7 +56,7 @@ use serde::{Deserialize, Deserializer};
 use std::error;
 use std::fmt;
 
-// ================================================================================================
+// =================================================================================================================================
 // Helper functions:
 
 fn deserialize_time<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
@@ -128,7 +128,7 @@ impl<'a, T> Iterator for PaginatedList<'a, T>
     }
 }
 
-// ================================================================================================
+// =================================================================================================================================
 // IETF Datatracker types:
 
 #[derive(Deserialize, Debug, Eq, PartialEq)]
@@ -223,7 +223,7 @@ pub struct HistoricalPerson {
     pub history_date          : DateTime<Utc>,
 }
 
-// ================================================================================================
+// =================================================================================================================================
 // The DatatrackerError type:
 
 #[derive(Debug)]
@@ -256,7 +256,7 @@ impl From<reqwest::Error> for DatatrackerError {
     }
 }
 
-// ================================================================================================
+// =================================================================================================================================
 // IETF Datatracker API:
 
 pub struct Datatracker {
@@ -282,15 +282,11 @@ impl Datatracker {
         }
     }
 
-    // --------------------------------------------------------------------------------------------
-    // Datatracker API endpoints returning information about people:
+    // ----------------------------------------------------------------------------------------------------------------------------
+    // Datatracker API endpoints returning information about email addresses:
     //
     // * https://datatracker.ietf.org/api/v1/person/email/csp@csperkins.org/
-    // * https://datatracker.ietf.org/api/v1/person/person/20209/
-    // * https://datatracker.ietf.org/api/v1/person/person/
-    //   https://datatracker.ietf.org/api/v1/person/historicalperson/
-    //   https://datatracker.ietf.org/api/v1/person/historicalemail/
-    //   https://datatracker.ietf.org/api/v1/person/alias/
+    // * https://datatracker.ietf.org/api/v1/person/historicalemail/
 
     /// Retrieve information about an email address.
     ///
@@ -312,6 +308,14 @@ impl Datatracker {
         PaginatedList::<'a, HistoricalEmail>::new(self, url)
     }
 
+    // ----------------------------------------------------------------------------------------------------------------------------
+    // Datatracker API endpoints returning information about people:
+    //
+    // * https://datatracker.ietf.org/api/v1/person/person/20209/
+    // * https://datatracker.ietf.org/api/v1/person/person/
+    // * https://datatracker.ietf.org/api/v1/person/historicalperson/
+    //   https://datatracker.ietf.org/api/v1/person/alias/
+
     pub fn person(&self, person_uri : &PersonUri) -> Result<Person, DatatrackerError> {
         assert!(person_uri.0.starts_with("/api/v1/person/person/"));
         let url = format!("https://datatracker.ietf.org/{}/", person_uri.0);
@@ -321,6 +325,11 @@ impl Datatracker {
     pub fn person_from_email(&self, email : &str) -> Result<Person, DatatrackerError> {
         let person = self.email(email)?.person;
         self.person(&person)
+    }
+
+    pub fn person_history<'a>(&'a self, person : &'a Person) -> PaginatedList<HistoricalPerson> {
+        let url = format!("https://datatracker.ietf.org/api/v1/person/historicalperson/?id={}", person.id);
+        PaginatedList::<'a, HistoricalPerson>::new(self, url)
     }
 
     pub fn people<'a>(&'a self) -> PaginatedList<'a, Person> {
@@ -344,14 +353,9 @@ impl Datatracker {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?time__gte={}&time__lt={}", &s, &b);
         PaginatedList::<'a, Person>::new(self, url)
     }
-
-    pub fn person_history<'a>(&'a self, person : &'a Person) -> PaginatedList<HistoricalPerson> {
-        let url = format!("https://datatracker.ietf.org/api/v1/person/historicalperson/?id={}", person.id);
-        PaginatedList::<'a, HistoricalPerson>::new(self, url)
-    }
 }
 
-// ================================================================================================
+// =================================================================================================================================
 // Test suite:
 
 #[cfg(test)]
@@ -492,4 +496,4 @@ mod ietfdata_tests {
     }
 }
 
-// ================================================================================================
+// =================================================================================================================================
