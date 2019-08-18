@@ -13,9 +13,9 @@
    replacing both instances of 0.2.4 with the latest version number, to
    download the crate.
  - Check the downloaded and locally built crates are identical:
-   shasum -a 256 releases/ietfdata-rs-0.2.4.crate
-   shasum -a 256 target/packages/ietfdata-rs-0.2.4.crate
- - Add the downloaded crate to git and push the repo
+     shasum -a 256 releases/ietfdata-rs-0.2.4.crate
+     shasum -a 256 target/package/ietfdata-rs-0.2.4.crate
+ - Add the downloaded crate to git and push the repo to Github
   
 
 
