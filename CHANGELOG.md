@@ -16,11 +16,16 @@
 
 ## v0.2.3 -- 2019-08-18
 
- - Add `people_between()` method
- - Add `person_aliases()` method and Alias type
- - Add `person_history()` method and HistoricalPerson type
- - Add `email_history_for_address()` and `email_history_for_person()`
-   methods and HistoricalEmail type
+ - Add new types:
+    - Alias
+    - HistoricalPerson
+    - HistoricalEmail
+ - Add new methods:
+    - `people_between()`
+    - `person_aliases()`
+    - `person_history()`
+    - `email_history_for_address()` 
+    - `email_history_for_person()`
 
 
 ## v0.2.2 -- 2019-08-17
