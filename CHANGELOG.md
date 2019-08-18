@@ -9,9 +9,13 @@
    - If it fails, fix and restart release procedure
  - Tag the release in Github
  - Run "cargo publish" to push to crates.io
- - Run "cargo download ietfdata-rs==0.1.1 > releases/ietfdata-rs-0.1.1.crate",
-   replacing 0.1.1 with the latest version number, to download the crate. Add
-   to downloaded file to the git repo and push.
+ - Run "cargo download ietfdata-rs==0.2.4 -o releases/ietfdata-rs-0.2.4.crate",
+   replacing both instances of 0.2.4 with the latest version number, to
+   download the crate.
+ - Check the downloaded and locally built crates are identical:
+   shasum -a 256 releases/ietfdata-rs-0.2.4.crate
+   shasum -a 256 target/packages/ietfdata-rs-0.2.4.crate
+ - Add the downloaded crate to git and push the repo
   
 
 
