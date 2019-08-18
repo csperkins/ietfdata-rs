@@ -14,12 +14,17 @@
 
 # Change Log
 
+## v???
+
+ - 
+
+
 ## v0.2.3 -- 2019-08-18
 
  - Add new types:
-    - Alias
-    - HistoricalPerson
-    - HistoricalEmail
+    - `Alias`
+    - `HistoricalPerson`
+    - `HistoricalEmail`
  - Add new methods:
     - `people_between()`
     - `person_aliases()`
@@ -30,13 +35,15 @@
 
 ## v0.2.2 -- 2019-08-17
 
- - Add `people_with_name()` method
- - Add `people_with_name_containing()` method
+ - Add new methods:
+    - `people_with_name()`
+    - `people_with_name_containing()`
 
 
 ## v0.2.1 -- 2019-08-17
 
- - Add `person_from_email()` method
+ - Add new method:
+    - `person_from_email()`
 
 
 ## v0.2.0 -- 2019-08-16
@@ -51,5 +58,8 @@
 
 ## v0.1.0 -- 2019-08-10
 
- - Initial version, with email(), person(), and people() methods.
+ - Initial version, implementing the following methods:
+    - `email()`
+    - `person()`
+    - `people()`
 
