@@ -17,6 +17,7 @@
 ## v???
 
  - Add `people_between()` method
+ - Add `person_history()` method and HistoricalPerson type
 
 
 ## v0.2.2 -- 2019-08-17

@@ -63,7 +63,7 @@ fn deserialize_time<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
     where D: Deserializer<'de>
 {
     let s = String::deserialize(deserializer)?;
-    Utc.datetime_from_str(&s, "%Y-%m-%dT%H:%M:%S").map_err(serde::de::Error::custom)
+    Utc.datetime_from_str(&s, "%Y-%m-%dT%H:%M:%S%.f").map_err(serde::de::Error::custom)
 }
 
 // Generic types representing a paginated list of responses from the Datatracker:
@@ -167,6 +167,36 @@ pub struct Person {
     pub photo_thumb     : Option<String>,  // Actually a URL
     pub user            : Option<String>,
     pub consent         : Option<bool>
+}
+
+#[derive(Deserialize, Debug, Eq, PartialEq)]
+pub struct HistoricalPersonUri(String);
+
+/// A historical person in the IETF datatracker.
+#[derive(Deserialize, Debug)]
+#[serde(deny_unknown_fields)]
+pub struct HistoricalPerson {
+    // Fields common with Person:
+    pub id                    : u64,
+    pub resource_uri          : HistoricalPersonUri,
+    pub name                  : String,
+    pub name_from_draft       : String,
+    pub biography             : String,
+    pub ascii                 : String,
+    pub ascii_short           : Option<String>,
+    #[serde(deserialize_with="deserialize_time")]
+    pub time                  : DateTime<Utc>,
+    pub photo                 : Option<String>, // Actually a URL
+    pub photo_thumb           : Option<String>, // Actually a URL
+    pub user                  : String,
+    pub consent               : Option<bool>,
+    // Fields recording the history:
+    pub history_change_reason : Option<String>,
+    pub history_user          : String,
+    pub history_type          : String,
+    pub history_id            : u64,
+    #[serde(deserialize_with="deserialize_time")]
+    pub history_date          : DateTime<Utc>,
 }
 
 // ================================================================================================
@@ -280,6 +310,12 @@ impl Datatracker {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?time__gte={}&time__lt={}", &s, &b);
         PaginatedList::<'a, Person>::new(self, url)
     }
+
+    pub fn person_history<'a>(&'a self, person : &'a Person) -> PaginatedList<HistoricalPerson> {
+        let url = format!("https://datatracker.ietf.org/api/v1/person/historicalperson/?id={}", person.id);
+        println!("{:?}", url);
+        PaginatedList::<'a, HistoricalPerson>::new(self, url)
+    }
 }
 
 // ================================================================================================
@@ -366,7 +402,7 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
         let people : Vec<Person> = dt.people_with_name_containing("Perkins").collect();
 
-        // As of 17-08-2019, there are six people named Perkins in the datatracker.
+        // As of 2019-08-17, there are six people named Perkins in the datatracker.
         assert_eq!(people.len(), 6);
 
         Ok(())
@@ -386,6 +422,17 @@ mod ietfdata_tests {
         Ok(())
     }
 
+    #[test]
+    fn test_person_history() -> Result<(), DatatrackerError> {
+        let dt = Datatracker::new();
+        let p  = dt.person_from_email("csp@csperkins.org")?;
+        let h  = dt.person_history(&p);
+
+        // As of 2019-08-18, there are two history items for csp@csperkins.org
+        assert_eq!(h.len(), 2);
+
+        Ok(())
+    }
 }
 
 // ================================================================================================
