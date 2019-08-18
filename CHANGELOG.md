@@ -14,6 +14,11 @@
 
 # Change Log
 
+## v???
+
+ - Add `people_between()` method
+
+
 ## v0.2.2 -- 2019-08-17
 
  - Add `people_with_name()` method

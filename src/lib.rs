@@ -207,7 +207,10 @@ impl Datatracker {
         }
     }
 
-    /// Lookup information about an email address.
+    // --------------------------------------------------------------------------------------------
+    // Methods relating to email addresses:
+
+    /// Retrieve information about an email address.
     ///
     /// This returns the information held about a particular email address.
     /// If you want information about the person with a particular address,
@@ -216,6 +219,9 @@ impl Datatracker {
         let url = format!("https://datatracker.ietf.org/api/v1/person/email/{}/", email);
         self.retrieve::<Email>(&url)
     }
+
+    // --------------------------------------------------------------------------------------------
+    // Methods relating to people:
 
     pub fn person(&self, person_uri : &PersonUri) -> Result<Person, DatatrackerError> {
         let url = format!("https://datatracker.ietf.org/{}/", person_uri.0);
@@ -239,6 +245,13 @@ impl Datatracker {
 
     pub fn people_with_name_containing<'a>(&'a self, name_contains: &'a str) -> PaginatedList<'a, Person> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?name__contains={}", name_contains);
+        PaginatedList::<'a, Person>::new(self, url)
+    }
+
+    pub fn people_between<'a>(&'a self, start: DateTime<Utc>, before: DateTime<Utc>) -> PaginatedList<'a, Person> {
+        let s =  start.format("%Y-%m-%dT%H:%M:%S");
+        let b = before.format("%Y-%m-%dT%H:%M:%S");
+        let url = format!("https://datatracker.ietf.org/api/v1/person/person/?time__gte={}&time__lt={}", &s, &b);
         PaginatedList::<'a, Person>::new(self, url)
     }
 }
@@ -332,6 +345,21 @@ mod ietfdata_tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_people_between() -> Result<(), DatatrackerError> {
+        let start = Utc.ymd(2019, 7, 1).and_hms( 0,  0,  0);
+        let until = Utc.ymd(2019, 7, 7).and_hms(23, 59, 59);
+
+        let dt = Datatracker::new();
+        let people : Vec<Person> = dt.people_between(start, until).collect();
+
+        // There are 26 people in the tracker with dates in the first week of July 2019
+        assert_eq!(people.len(), 26);
+
+        Ok(())
+    }
+
 }
 
 // ================================================================================================
