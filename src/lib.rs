@@ -313,7 +313,6 @@ impl Datatracker {
 
     pub fn person_history<'a>(&'a self, person : &'a Person) -> PaginatedList<HistoricalPerson> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/historicalperson/?id={}", person.id);
-        println!("{:?}", url);
         PaginatedList::<'a, HistoricalPerson>::new(self, url)
     }
 }
@@ -426,7 +425,7 @@ mod ietfdata_tests {
     fn test_person_history() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
         let p  = dt.person_from_email("csp@csperkins.org")?;
-        let h  = dt.person_history(&p);
+        let h  : Vec<HistoricalPerson> = dt.person_history(&p).collect();
 
         // As of 2019-08-18, there are two history items for csp@csperkins.org
         assert_eq!(h.len(), 2);
