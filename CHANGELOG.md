@@ -18,6 +18,8 @@
 
  - Add `people_between()` method
  - Add `person_history()` method and HistoricalPerson type
+ - Add `email_history_for_address()` and `email_history_for_person()`
+   methods and HistoricalEmail type
 
 
 ## v0.2.2 -- 2019-08-17

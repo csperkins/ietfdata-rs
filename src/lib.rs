@@ -148,6 +148,30 @@ pub struct Email {
 }
 
 #[derive(Deserialize, Debug, Eq, PartialEq)]
+pub struct HistoricalEmailUri(String);
+
+#[derive(Deserialize, Debug)]
+pub struct HistoricalEmail {
+    // Fields common with Email:
+    pub resource_uri          : HistoricalEmailUri,
+    pub address               : String,
+    pub person                : PersonUri,
+    #[serde(deserialize_with="deserialize_time")]
+    pub time                  : DateTime<Utc>,
+    pub origin                : String,
+    pub primary               : bool,
+    pub active                : bool,
+    // Fields recording the history:
+    pub history_change_reason : Option<String>,
+    pub history_user          : Option<String>,
+    pub history_id            : u64,
+    pub history_type          : String,
+    #[serde(deserialize_with="deserialize_time")]
+    pub history_date          : DateTime<Utc>
+}
+
+
+#[derive(Deserialize, Debug, Eq, PartialEq)]
 pub struct PersonUri(String);
 
 /// A person in the IETF datatracker.
@@ -278,6 +302,16 @@ impl Datatracker {
         self.retrieve::<Email>(&url)
     }
 
+    pub fn email_history_for_address<'a>(&'a self, email : &'a str) -> PaginatedList<HistoricalEmail> {
+        let url = format!("https://datatracker.ietf.org/api/v1/person/historicalemail/?address={}", email);
+        PaginatedList::<'a, HistoricalEmail>::new(self, url)
+    }
+
+    pub fn email_history_for_person<'a>(&'a self, person : &'a Person) -> PaginatedList<HistoricalEmail> {
+        let url = format!("https://datatracker.ietf.org/api/v1/person/historicalemail/?person={}", person.id);
+        PaginatedList::<'a, HistoricalEmail>::new(self, url)
+    }
+
     pub fn person(&self, person_uri : &PersonUri) -> Result<Person, DatatrackerError> {
         assert!(person_uri.0.starts_with("/api/v1/person/person/"));
         let url = format!("https://datatracker.ietf.org/{}/", person_uri.0);
@@ -342,6 +376,30 @@ mod ietfdata_tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_email_history_for_address() -> Result<(), DatatrackerError> {
+        let dt = Datatracker::new();
+        let h : Vec<HistoricalEmail> = dt.email_history_for_address("csp@isi.edu").collect();
+
+        assert_eq!(h.len(), 1);
+        assert_eq!(h[0].address, "csp@isi.edu");
+        assert_eq!(h[0].person,  PersonUri("/api/v1/person/person/20209/".to_string()));
+
+        Ok(())
+    }
+
+/*
+    #[test]
+    fn test_email_history_for_person() -> Result<(), DatatrackerError> {
+        let dt = Datatracker::new();
+        let p  = dt.person_from_email("csp@csperkins.org")?;
+        for h in dt.email_history_for_person(&p) {
+            println!("{:?}", h);
+        }
+        Ok(())
+    }
+*/
 
     #[test]
     fn test_person() -> Result<(), DatatrackerError> {
