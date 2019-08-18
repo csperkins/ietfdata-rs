@@ -9,6 +9,9 @@
    - If it fails, fix and restart release procedure
  - Tag the release in Github
  - Run "cargo publish" to push to crates.io
+ - Run "cargo download ietfdata-rs==0.1.1 > releases/ietfdata-rs-0.1.1.crate",
+   replacing 0.1.1 with the latest version number, to download the crate. Add
+   to downloaded file to the git repo and push.
   
 
 
