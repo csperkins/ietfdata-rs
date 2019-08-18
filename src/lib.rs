@@ -25,6 +25,27 @@
 //
 // SPDX-License-Identifier: BSD-2-Clause
 
+// This library contains code to interact with the IETF Datatracker
+// (https://datatracker.ietf.org/release/about)
+//
+// The Datatracker API is at https://datatracker.ietf.org/api/v1 and is
+// a REST API implemented using Django Tastypie (http://tastypieapi.org)
+//
+// It's possible to do time range queries on many of these values, for example:
+//   https://datatracker.ietf.org/api/v1/person/person/?time__gt=2018-03-27T14:07:36
+//
+// See also:
+//   https://datatracker.ietf.org/api/
+//   https://trac.tools.ietf.org/tools/ietfdb/wiki/DatabaseSchemaDescription
+//   https://trac.tools.ietf.org/tools/ietfdb/wiki/DatatrackerDrafts
+//   RFC 6174 "Definition of IETF Working Group Document States"
+//   RFC 6175 "Requirements to Extend the Datatracker for IETF Working Group Chairs and Authors"
+//   RFC 6292 "Requirements for a Working Group Charter Tool"
+//   RFC 6293 "Requirements for Internet-Draft Tracking by the IETF Community in the Datatracker"
+//   RFC 6322 "Datatracker States and Annotations for the IAB, IRTF, and Independent Submission Streams"
+//   RFC 6359 "Datatracker Extensions to Include IANA and RFC Editor Processing Information"
+//   RFC 7760 "Statement of Work for Extensions to the IETF Datatracker for Author Statistics"
+
 extern crate chrono;
 extern crate reqwest;
 extern crate serde;
@@ -208,7 +229,14 @@ impl Datatracker {
     }
 
     // --------------------------------------------------------------------------------------------
-    // Methods relating to email addresses:
+    // Datatracker API endpoints returning information about people:
+    //
+    // * https://datatracker.ietf.org/api/v1/person/email/csp@csperkins.org/
+    // * https://datatracker.ietf.org/api/v1/person/person/20209/
+    // * https://datatracker.ietf.org/api/v1/person/person/
+    //   https://datatracker.ietf.org/api/v1/person/historicalperson/
+    //   https://datatracker.ietf.org/api/v1/person/historicalemail/
+    //   https://datatracker.ietf.org/api/v1/person/alias/
 
     /// Retrieve information about an email address.
     ///
@@ -220,10 +248,8 @@ impl Datatracker {
         self.retrieve::<Email>(&url)
     }
 
-    // --------------------------------------------------------------------------------------------
-    // Methods relating to people:
-
     pub fn person(&self, person_uri : &PersonUri) -> Result<Person, DatatrackerError> {
+        assert!(person_uri.0.starts_with("/api/v1/person/person/"));
         let url = format!("https://datatracker.ietf.org/{}/", person_uri.0);
         self.retrieve::<Person>(&url)
     }
