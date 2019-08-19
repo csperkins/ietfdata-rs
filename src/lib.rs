@@ -102,29 +102,42 @@ impl<'a, T> PaginatedList<'a, T>
             dt   : dt
         })
     }
+
+    fn try_next(&mut self) -> Result<Option<T>, DatatrackerError> {
+        match self.iter.next() {
+            Some(x) => {
+                Ok(Some(x))
+            }
+            None => {
+                match self.next.clone() {
+                    Some(ref url_frag) => {
+                        let url = format!("https://datatracker.ietf.org/{}", url_frag);
+                        let mut res = self.dt.connection.get(&url).send()?;
+                        let pl : Page<T> = res.json()?;
+                        self.next = pl.meta.next.clone();
+                        self.iter = pl.objects.into_iter();
+                        self.try_next()
+                    }
+                    None => {
+                        Ok(None)
+                    }
+                }
+            }
+        }
+    }
 }
 
 impl<'a, T> Iterator for PaginatedList<'a, T>
     where for<'de> T: Deserialize<'de>
 {
-    type Item = T;
+    type Item = Result<T, DatatrackerError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().or_else(||
-            match self.next.clone() {
-                Some(ref url_frag) => {
-                    let url = format!("https://datatracker.ietf.org/{}", url_frag);
-                    let mut res = self.dt.connection.get(&url).send().unwrap(); // FIXME
-                    let pl : Page<T> = res.json().unwrap();                     // FIXME
-                    self.next = pl.meta.next.clone();
-                    self.iter = pl.objects.into_iter();
-                    self.iter.next()
-                }
-                None => {
-                    None
-                }
-            }
-        )
+        match self.try_next() {
+            Ok(None)    => None,
+            Ok(Some(x)) => Some(Ok(x)),
+            Err(e)      => Some(Err(e))
+        }
     }
 }
 
@@ -523,7 +536,7 @@ mod ietfdata_tests {
     #[test]
     fn test_email_history_for_address() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
-        let h : Vec<HistoricalEmail> = dt.email_history_for_address("csp@isi.edu")?.collect();
+        let h  = dt.email_history_for_address("csp@isi.edu")?.collect::<Result<Vec<_>, _>>()?;
 
         assert_eq!(h.len(), 1);
         assert_eq!(h[0].address, "csp@isi.edu");
@@ -589,7 +602,7 @@ mod ietfdata_tests {
     #[test]
     fn test_people_with_name() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
-        let people : Vec<Person> = dt.people_with_name("Colin Perkins")?.collect();
+        let people = dt.people_with_name("Colin Perkins")?.collect::<Result<Vec<_>, _>>()?;
 
         assert_eq!(people[0].id,   20209);
         assert_eq!(people[0].name, "Colin Perkins");
@@ -600,7 +613,7 @@ mod ietfdata_tests {
     #[test]
     fn test_people_with_name_containing() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
-        let people : Vec<Person> = dt.people_with_name_containing("Perkins")?.collect();
+        let people = dt.people_with_name_containing("Perkins")?.collect::<Result<Vec<_>, _>>()?;
 
         // As of 2019-08-17, there are six people named Perkins in the datatracker.
         assert_eq!(people.len(), 6);
@@ -614,7 +627,7 @@ mod ietfdata_tests {
         let until = Utc.ymd(2019, 7, 7).and_hms(23, 59, 59);
 
         let dt = Datatracker::new();
-        let people : Vec<Person> = dt.people_between(start, until)?.collect();
+        let people = dt.people_between(start, until)?.collect::<Result<Vec<_>, _>>()?;
 
         // There are 26 people in the tracker with dates in the first week of July 2019
         assert_eq!(people.len(), 26);
@@ -626,7 +639,7 @@ mod ietfdata_tests {
     fn test_person_history() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
         let p  = dt.person_from_email("csp@csperkins.org")?;
-        let h  : Vec<HistoricalPerson> = dt.person_history(&p)?.collect();
+        let h  = dt.person_history(&p)?.collect::<Result<Vec<_>, _>>()?;
 
         // As of 2019-08-18, there are two history items for csp@csperkins.org
         assert_eq!(h.len(), 2);
@@ -638,7 +651,7 @@ mod ietfdata_tests {
     fn test_person_aliases() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
         let p  = dt.person_from_email("csp@csperkins.org")?;
-        let h  : Vec<PersonAlias> = dt.person_aliases(&p)?.collect();
+        let h  = dt.person_aliases(&p)?.collect::<Result<Vec<_>, _>>()?;
 
         // As of 2019-08-18, there are two aliases for csp@csperkins.org
         assert_eq!(h.len(), 2);
