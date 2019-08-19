@@ -92,15 +92,15 @@ pub struct PaginatedList<'a, T> {
 impl<'a, T> PaginatedList<'a, T>
     where for<'de> T: Deserialize<'de>
 {
-    pub fn new(dt: &'a Datatracker, url : String) -> Self {
-        let mut res = dt.connection.get(&url).send().unwrap(); // FIXME
-        let pl : Page<T> = res.json().unwrap();                // FIXME
+    pub fn new(dt: &'a Datatracker, url : String) -> Result<Self, DatatrackerError> {
+        let mut res = dt.connection.get(&url).send()?;
+        let pl : Page<T> = res.json()?;
 
-        Self {
+        Ok(Self {
             next : pl.meta.next.clone(),
             iter : pl.objects.into_iter(),
             dt   : dt
-        }
+        })
     }
 }
 
@@ -310,12 +310,12 @@ impl Datatracker {
         self.retrieve::<Email>(&url)
     }
 
-    pub fn email_history_for_address<'a>(&'a self, email : &'a str) -> PaginatedList<HistoricalEmail> {
+    pub fn email_history_for_address<'a>(&'a self, email : &'a str) -> Result<PaginatedList<HistoricalEmail>, DatatrackerError> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/historicalemail/?address={}", email);
         PaginatedList::<'a, HistoricalEmail>::new(self, url)
     }
 
-    pub fn email_history_for_person<'a>(&'a self, person : &'a Person) -> PaginatedList<HistoricalEmail> {
+    pub fn email_history_for_person<'a>(&'a self, person : &'a Person) -> Result<PaginatedList<HistoricalEmail>, DatatrackerError> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/historicalemail/?person={}", person.id);
         PaginatedList::<'a, HistoricalEmail>::new(self, url)
     }
@@ -338,32 +338,36 @@ impl Datatracker {
         self.person(&person)
     }
 
-    pub fn person_aliases<'a>(&'a self, person : &'a Person) -> PaginatedList<PersonAlias> {
+    pub fn person_aliases<'a>(&'a self, person : &'a Person) -> Result<PaginatedList<PersonAlias>, DatatrackerError> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/alias/?person={}", person.id);
         PaginatedList::<'a, PersonAlias>::new(self, url)
     }
 
-    pub fn person_history<'a>(&'a self, person : &'a Person) -> PaginatedList<HistoricalPerson> {
+    pub fn person_history<'a>(&'a self, person : &'a Person) -> Result<PaginatedList<HistoricalPerson>, DatatrackerError> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/historicalperson/?id={}", person.id);
         PaginatedList::<'a, HistoricalPerson>::new(self, url)
     }
 
-    pub fn people<'a>(&'a self) -> PaginatedList<'a, Person> {
+    pub fn people<'a>(&'a self) -> Result<PaginatedList<'a, Person>, DatatrackerError> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/");
         PaginatedList::<'a, Person>::new(self, url)
     }
 
-    pub fn people_with_name<'a>(&'a self, name: &'a str) -> PaginatedList<'a, Person> {
+    pub fn people_with_name<'a>(&'a self, name: &'a str) -> Result<PaginatedList<'a, Person>, DatatrackerError> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?name={}", name);
         PaginatedList::<'a, Person>::new(self, url)
     }
 
-    pub fn people_with_name_containing<'a>(&'a self, name_contains: &'a str) -> PaginatedList<'a, Person> {
+    pub fn people_with_name_containing<'a>(&'a self, name_contains: &'a str) 
+        -> Result<PaginatedList<'a, Person>, DatatrackerError> 
+    {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?name__contains={}", name_contains);
         PaginatedList::<'a, Person>::new(self, url)
     }
 
-    pub fn people_between<'a>(&'a self, start: DateTime<Utc>, before: DateTime<Utc>) -> PaginatedList<'a, Person> {
+    pub fn people_between<'a>(&'a self, start: DateTime<Utc>, before: DateTime<Utc>) 
+        -> Result<PaginatedList<'a, Person>, DatatrackerError> 
+    {
         let s =  start.format("%Y-%m-%dT%H:%M:%S");
         let b = before.format("%Y-%m-%dT%H:%M:%S");
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?time__gte={}&time__lt={}", &s, &b);
@@ -519,7 +523,7 @@ mod ietfdata_tests {
     #[test]
     fn test_email_history_for_address() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
-        let h : Vec<HistoricalEmail> = dt.email_history_for_address("csp@isi.edu").collect();
+        let h : Vec<HistoricalEmail> = dt.email_history_for_address("csp@isi.edu")?.collect();
 
         assert_eq!(h.len(), 1);
         assert_eq!(h[0].address, "csp@isi.edu");
@@ -585,7 +589,7 @@ mod ietfdata_tests {
     #[test]
     fn test_people_with_name() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
-        let people : Vec<Person> = dt.people_with_name("Colin Perkins").collect();
+        let people : Vec<Person> = dt.people_with_name("Colin Perkins")?.collect();
 
         assert_eq!(people[0].id,   20209);
         assert_eq!(people[0].name, "Colin Perkins");
@@ -596,7 +600,7 @@ mod ietfdata_tests {
     #[test]
     fn test_people_with_name_containing() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
-        let people : Vec<Person> = dt.people_with_name_containing("Perkins").collect();
+        let people : Vec<Person> = dt.people_with_name_containing("Perkins")?.collect();
 
         // As of 2019-08-17, there are six people named Perkins in the datatracker.
         assert_eq!(people.len(), 6);
@@ -610,7 +614,7 @@ mod ietfdata_tests {
         let until = Utc.ymd(2019, 7, 7).and_hms(23, 59, 59);
 
         let dt = Datatracker::new();
-        let people : Vec<Person> = dt.people_between(start, until).collect();
+        let people : Vec<Person> = dt.people_between(start, until)?.collect();
 
         // There are 26 people in the tracker with dates in the first week of July 2019
         assert_eq!(people.len(), 26);
@@ -622,7 +626,7 @@ mod ietfdata_tests {
     fn test_person_history() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
         let p  = dt.person_from_email("csp@csperkins.org")?;
-        let h  : Vec<HistoricalPerson> = dt.person_history(&p).collect();
+        let h  : Vec<HistoricalPerson> = dt.person_history(&p)?.collect();
 
         // As of 2019-08-18, there are two history items for csp@csperkins.org
         assert_eq!(h.len(), 2);
@@ -634,7 +638,7 @@ mod ietfdata_tests {
     fn test_person_aliases() -> Result<(), DatatrackerError> {
         let dt = Datatracker::new();
         let p  = dt.person_from_email("csp@csperkins.org")?;
-        let h  : Vec<PersonAlias> = dt.person_aliases(&p).collect();
+        let h  : Vec<PersonAlias> = dt.person_aliases(&p)?.collect();
 
         // As of 2019-08-18, there are two aliases for csp@csperkins.org
         assert_eq!(h.len(), 2);
