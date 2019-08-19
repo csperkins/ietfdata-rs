@@ -21,7 +21,7 @@
 
 # Change Log
 
-## v0.3.0 -- 
+## v0.3.0 -- 2019-08-19
 
  - Revise `PaginatedList` and related types to return `Result<>`
 
