@@ -21,6 +21,11 @@
 
 # Change Log
 
+## v0.3.0 -- 
+
+ - Revise `PaginatedList` and related types to return `Result<>`
+
+
 ## v0.2.4 -- 2019-08-18
 
  - Rename 'Alias' to 'PersonAlias' since there will be document aliases
