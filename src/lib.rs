@@ -147,7 +147,6 @@ impl<'a, T> Iterator for PaginatedList<'a, T>
 #[derive(Deserialize, Debug, Eq, PartialEq)]
 pub struct EmailUri(String);
 
-/// A mapping from email address to person in the IETF datatracker.
 #[derive(Deserialize, Debug)]
 pub struct Email {
     pub resource_uri : EmailUri,
@@ -187,9 +186,7 @@ pub struct HistoricalEmail {
 #[derive(Deserialize, Debug, Eq, PartialEq)]
 pub struct PersonUri(String);
 
-/// A person in the IETF datatracker.
 #[derive(Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
 pub struct Person {
     pub id              : u64,
     pub resource_uri    : PersonUri,
@@ -209,9 +206,7 @@ pub struct Person {
 #[derive(Deserialize, Debug, Eq, PartialEq)]
 pub struct HistoricalPersonUri(String);
 
-/// A historical person in the IETF datatracker.
 #[derive(Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
 pub struct HistoricalPerson {
     // Fields common with Person:
     pub id                    : u64,
@@ -239,9 +234,7 @@ pub struct HistoricalPerson {
 #[derive(Deserialize, Debug, Eq, PartialEq)]
 pub struct PersonAliasUri(String);
 
-/// An alias in the IETF datatracker.
 #[derive(Deserialize, Debug)]
-#[serde(deny_unknown_fields)]
 pub struct PersonAlias {
     pub id           : u64,
     pub resource_uri : PersonAliasUri,
@@ -295,8 +288,7 @@ impl Datatracker {
     {
         let mut res = self.connection.get(url).send()?;
         if res.status().is_success() {
-            let res : T = res.json()?;
-            Ok(res)
+            Ok(res.json()?)
         } else {
             Err(DatatrackerError::NotFound)
         }
