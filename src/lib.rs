@@ -278,12 +278,14 @@ impl From<reqwest::Error> for DatatrackerError {
 // =================================================================================================================================
 // IETF Datatracker API:
 
+type DTResult<T> = Result<T, DatatrackerError>;
+
 pub struct Datatracker {
     connection : reqwest::Client
 }
 
 impl Datatracker {
-    fn retrieve<T>(&self, url : &str) -> Result<T, DatatrackerError>
+    fn retrieve<T>(&self, url : &str) -> DTResult<T>
         where for<'de> T: Deserialize<'de> 
     {
         let mut res = self.connection.get(url).send()?;
@@ -310,17 +312,17 @@ impl Datatracker {
     /// This returns the information held about a particular email address.
     /// If you want information about the person with a particular address,
     /// use `person_from_email()`.
-    pub fn email(&self, email : &str) -> Result<Email, DatatrackerError> {
+    pub fn email(&self, email : &str) -> DTResult<Email> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/email/{}/", email);
         self.retrieve::<Email>(&url)
     }
 
-    pub fn email_history_for_address<'a>(&'a self, email : &'a str) -> Result<PaginatedList<HistoricalEmail>, DatatrackerError> {
+    pub fn email_history_for_address<'a>(&'a self, email : &'a str) -> DTResult<PaginatedList<HistoricalEmail>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/historicalemail/?address={}", email);
         PaginatedList::<'a, HistoricalEmail>::new(self, url)
     }
 
-    pub fn email_history_for_person<'a>(&'a self, person : &'a Person) -> Result<PaginatedList<HistoricalEmail>, DatatrackerError> {
+    pub fn email_history_for_person<'a>(&'a self, person : &'a Person) -> DTResult<PaginatedList<HistoricalEmail>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/historicalemail/?person={}", person.id);
         PaginatedList::<'a, HistoricalEmail>::new(self, url)
     }
@@ -332,47 +334,43 @@ impl Datatracker {
     // * https://datatracker.ietf.org/api/v1/person/historicalperson/
     // * https://datatracker.ietf.org/api/v1/person/alias/
 
-    pub fn person(&self, person_uri : &PersonUri) -> Result<Person, DatatrackerError> {
+    pub fn person(&self, person_uri : &PersonUri) -> DTResult<Person> {
         assert!(person_uri.0.starts_with("/api/v1/person/person/"));
         let url = format!("https://datatracker.ietf.org/{}/", person_uri.0);
         self.retrieve::<Person>(&url)
     }
 
-    pub fn person_from_email(&self, email : &str) -> Result<Person, DatatrackerError> {
+    pub fn person_from_email(&self, email : &str) -> DTResult<Person> {
         let person = self.email(email)?.person;
         self.person(&person)
     }
 
-    pub fn person_aliases<'a>(&'a self, person : &'a Person) -> Result<PaginatedList<PersonAlias>, DatatrackerError> {
+    pub fn person_aliases<'a>(&'a self, person : &'a Person) -> DTResult<PaginatedList<PersonAlias>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/alias/?person={}", person.id);
         PaginatedList::<'a, PersonAlias>::new(self, url)
     }
 
-    pub fn person_history<'a>(&'a self, person : &'a Person) -> Result<PaginatedList<HistoricalPerson>, DatatrackerError> {
+    pub fn person_history<'a>(&'a self, person : &'a Person) -> DTResult<PaginatedList<HistoricalPerson>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/historicalperson/?id={}", person.id);
         PaginatedList::<'a, HistoricalPerson>::new(self, url)
     }
 
-    pub fn people<'a>(&'a self) -> Result<PaginatedList<'a, Person>, DatatrackerError> {
+    pub fn people<'a>(&'a self) -> DTResult<PaginatedList<'a, Person>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/");
         PaginatedList::<'a, Person>::new(self, url)
     }
 
-    pub fn people_with_name<'a>(&'a self, name: &'a str) -> Result<PaginatedList<'a, Person>, DatatrackerError> {
+    pub fn people_with_name<'a>(&'a self, name: &'a str) -> DTResult<PaginatedList<'a, Person>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?name={}", name);
         PaginatedList::<'a, Person>::new(self, url)
     }
 
-    pub fn people_with_name_containing<'a>(&'a self, name_contains: &'a str) 
-        -> Result<PaginatedList<'a, Person>, DatatrackerError> 
-    {
+    pub fn people_with_name_containing<'a>(&'a self, name_contains: &'a str) -> DTResult<PaginatedList<'a, Person>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?name__contains={}", name_contains);
         PaginatedList::<'a, Person>::new(self, url)
     }
 
-    pub fn people_between<'a>(&'a self, start: DateTime<Utc>, before: DateTime<Utc>) 
-        -> Result<PaginatedList<'a, Person>, DatatrackerError> 
-    {
+    pub fn people_between<'a>(&'a self, start: DateTime<Utc>, before: DateTime<Utc>) -> DTResult<PaginatedList<'a, Person>> {
         let s =  start.format("%Y-%m-%dT%H:%M:%S");
         let b = before.format("%Y-%m-%dT%H:%M:%S");
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?time__gte={}&time__lt={}", &s, &b);
@@ -507,7 +505,7 @@ mod ietfdata_tests {
     use super::*;
 
     #[test]
-    fn test_email() -> Result<(), DatatrackerError> {
+    fn test_email() -> DTResult<()> {
         let dt = Datatracker::new();
         let e  = dt.email("csp@csperkins.org")?;
 
@@ -526,7 +524,7 @@ mod ietfdata_tests {
     }
 
     #[test]
-    fn test_email_history_for_address() -> Result<(), DatatrackerError> {
+    fn test_email_history_for_address() -> DTResult<()> {
         let dt = Datatracker::new();
         let h  = dt.email_history_for_address("csp@isi.edu")?.collect::<Result<Vec<_>, _>>()?;
 
@@ -539,7 +537,7 @@ mod ietfdata_tests {
 
 /*
     #[test]
-    fn test_email_history_for_person() -> Result<(), DatatrackerError> {
+    fn test_email_history_for_person() -> DTResult<()> {
         let dt = Datatracker::new();
         let p  = dt.person_from_email("csp@csperkins.org")?;
         for h in dt.email_history_for_person(&p) {
@@ -550,7 +548,7 @@ mod ietfdata_tests {
 */
 
     #[test]
-    fn test_person() -> Result<(), DatatrackerError> {
+    fn test_person() -> DTResult<()> {
         let dt = Datatracker::new();
         let p  = dt.person(&PersonUri("/api/v1/person/person/20209/".to_string()))?;
 
@@ -570,7 +568,7 @@ mod ietfdata_tests {
     }
 
     #[test]
-    fn test_person_from_email() -> Result<(), DatatrackerError> {
+    fn test_person_from_email() -> DTResult<()> {
         let dt = Datatracker::new();
         let p  = dt.person_from_email("csp@csperkins.org")?;
 
@@ -592,7 +590,7 @@ mod ietfdata_tests {
 */
 
     #[test]
-    fn test_people_with_name() -> Result<(), DatatrackerError> {
+    fn test_people_with_name() -> DTResult<()> {
         let dt = Datatracker::new();
         let people = dt.people_with_name("Colin Perkins")?.collect::<Result<Vec<_>, _>>()?;
 
@@ -603,7 +601,7 @@ mod ietfdata_tests {
     }
 
     #[test]
-    fn test_people_with_name_containing() -> Result<(), DatatrackerError> {
+    fn test_people_with_name_containing() -> DTResult<()> {
         let dt = Datatracker::new();
         let people = dt.people_with_name_containing("Perkins")?.collect::<Result<Vec<_>, _>>()?;
 
@@ -614,7 +612,7 @@ mod ietfdata_tests {
     }
 
     #[test]
-    fn test_people_between() -> Result<(), DatatrackerError> {
+    fn test_people_between() -> DTResult<()> {
         let start = Utc.ymd(2019, 7, 1).and_hms( 0,  0,  0);
         let until = Utc.ymd(2019, 7, 7).and_hms(23, 59, 59);
 
@@ -628,7 +626,7 @@ mod ietfdata_tests {
     }
 
     #[test]
-    fn test_person_history() -> Result<(), DatatrackerError> {
+    fn test_person_history() -> DTResult<()> {
         let dt = Datatracker::new();
         let p  = dt.person_from_email("csp@csperkins.org")?;
         let h  = dt.person_history(&p)?.collect::<Result<Vec<_>, _>>()?;
@@ -640,7 +638,7 @@ mod ietfdata_tests {
     }
 
     #[test]
-    fn test_person_aliases() -> Result<(), DatatrackerError> {
+    fn test_person_aliases() -> DTResult<()> {
         let dt = Datatracker::new();
         let p  = dt.person_from_email("csp@csperkins.org")?;
         let h  = dt.person_aliases(&p)?.collect::<Result<Vec<_>, _>>()?;
