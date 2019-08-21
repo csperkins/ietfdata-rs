@@ -144,8 +144,12 @@ impl<'a, T> Iterator for PaginatedList<'a, T>
 // =================================================================================================================================
 // IETF Datatracker types:
 
+// --------------------------------------------------------------------------------------------------------------------------------
+// Types relating to email addresses:
+
 #[derive(Deserialize, Debug, Eq, PartialEq)]
 pub struct EmailUri(String);
+
 
 #[derive(Deserialize, Debug)]
 pub struct Email {
@@ -159,8 +163,10 @@ pub struct Email {
     pub active       : bool
 }
 
+
 #[derive(Deserialize, Debug, Eq, PartialEq)]
 pub struct HistoricalEmailUri(String);
+
 
 #[derive(Deserialize, Debug)]
 pub struct HistoricalEmail {
@@ -183,8 +189,12 @@ pub struct HistoricalEmail {
 }
 
 
+// --------------------------------------------------------------------------------------------------------------------------------
+// Types relating to people:
+
 #[derive(Deserialize, Debug, Eq, PartialEq)]
 pub struct PersonUri(String);
+
 
 #[derive(Deserialize, Debug)]
 pub struct Person {
@@ -203,8 +213,10 @@ pub struct Person {
     pub consent         : Option<bool>
 }
 
+
 #[derive(Deserialize, Debug, Eq, PartialEq)]
 pub struct HistoricalPersonUri(String);
+
 
 #[derive(Deserialize, Debug)]
 pub struct HistoricalPerson {
@@ -231,8 +243,10 @@ pub struct HistoricalPerson {
     pub history_date          : DateTime<Utc>,
 }
 
+
 #[derive(Deserialize, Debug, Eq, PartialEq)]
 pub struct PersonAliasUri(String);
+
 
 #[derive(Deserialize, Debug)]
 pub struct PersonAlias {
@@ -251,6 +265,7 @@ pub enum DatatrackerError {
     IoError(reqwest::Error)
 }
 
+
 impl fmt::Display for DatatrackerError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -259,6 +274,7 @@ impl fmt::Display for DatatrackerError {
         }
     }
 }
+
 
 impl error::Error for DatatrackerError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
@@ -269,20 +285,24 @@ impl error::Error for DatatrackerError {
     }
 }
 
+
 impl From<reqwest::Error> for DatatrackerError {
     fn from(err: reqwest::Error) -> DatatrackerError {
         DatatrackerError::IoError(err)
     }
 }
 
+
 // =================================================================================================================================
 // IETF Datatracker API:
 
 type DTResult<T> = Result<T, DatatrackerError>;
 
+
 pub struct Datatracker {
     connection : reqwest::Client
 }
+
 
 impl Datatracker {
     fn retrieve<T>(&self, url : &str) -> DTResult<T>
@@ -296,11 +316,13 @@ impl Datatracker {
         }
     }
 
+
     pub fn new() -> Self {
         Datatracker {
             connection : reqwest::Client::new()
         }
     }
+
 
     // ----------------------------------------------------------------------------------------------------------------------------
     // Datatracker API endpoints returning information about email addresses:
@@ -317,15 +339,18 @@ impl Datatracker {
         self.retrieve::<Email>(&url)
     }
 
+
     pub fn email_history_for_address<'a>(&'a self, email : &'a str) -> DTResult<PaginatedList<HistoricalEmail>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/historicalemail/?address={}", email);
         PaginatedList::<'a, HistoricalEmail>::new(self, url)
     }
 
+
     pub fn email_history_for_person<'a>(&'a self, person : &'a Person) -> DTResult<PaginatedList<HistoricalEmail>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/historicalemail/?person={}", person.id);
         PaginatedList::<'a, HistoricalEmail>::new(self, url)
     }
+
 
     // ----------------------------------------------------------------------------------------------------------------------------
     // Datatracker API endpoints returning information about people:
@@ -340,35 +365,42 @@ impl Datatracker {
         self.retrieve::<Person>(&url)
     }
 
+
     pub fn person_from_email(&self, email : &str) -> DTResult<Person> {
         let person = self.email(email)?.person;
         self.person(&person)
     }
+
 
     pub fn person_aliases<'a>(&'a self, person : &'a Person) -> DTResult<PaginatedList<PersonAlias>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/alias/?person={}", person.id);
         PaginatedList::<'a, PersonAlias>::new(self, url)
     }
 
+
     pub fn person_history<'a>(&'a self, person : &'a Person) -> DTResult<PaginatedList<HistoricalPerson>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/historicalperson/?id={}", person.id);
         PaginatedList::<'a, HistoricalPerson>::new(self, url)
     }
+
 
     pub fn people<'a>(&'a self) -> DTResult<PaginatedList<'a, Person>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/");
         PaginatedList::<'a, Person>::new(self, url)
     }
 
+
     pub fn people_with_name<'a>(&'a self, name: &'a str) -> DTResult<PaginatedList<'a, Person>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?name={}", name);
         PaginatedList::<'a, Person>::new(self, url)
     }
 
+
     pub fn people_with_name_containing<'a>(&'a self, name_contains: &'a str) -> DTResult<PaginatedList<'a, Person>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?name__contains={}", name_contains);
         PaginatedList::<'a, Person>::new(self, url)
     }
+
 
     pub fn people_between<'a>(&'a self, start: DateTime<Utc>, before: DateTime<Utc>) -> DTResult<PaginatedList<'a, Person>> {
         let s =  start.format("%Y-%m-%dT%H:%M:%S");
@@ -376,6 +408,7 @@ impl Datatracker {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?time__gte={}&time__lt={}", &s, &b);
         PaginatedList::<'a, Person>::new(self, url)
     }
+
 
     // ----------------------------------------------------------------------------------------------------------------------------
     // Datatracker API endpoints returning information about documents:
@@ -523,6 +556,7 @@ mod ietfdata_tests {
         Ok(())
     }
 
+
     #[test]
     fn test_email_history_for_address() -> DTResult<()> {
         let dt = Datatracker::new();
@@ -535,6 +569,7 @@ mod ietfdata_tests {
         Ok(())
     }
 
+
 /*
     #[test]
     fn test_email_history_for_person() -> DTResult<()> {
@@ -546,6 +581,7 @@ mod ietfdata_tests {
         Ok(())
     }
 */
+
 
     #[test]
     fn test_person() -> DTResult<()> {
@@ -567,6 +603,7 @@ mod ietfdata_tests {
         Ok(())
     }
 
+
     #[test]
     fn test_person_from_email() -> DTResult<()> {
         let dt = Datatracker::new();
@@ -577,6 +614,7 @@ mod ietfdata_tests {
 
         Ok(())
     }
+
 
 /*
     #[test]
@@ -589,6 +627,7 @@ mod ietfdata_tests {
     }
 */
 
+
     #[test]
     fn test_people_with_name() -> DTResult<()> {
         let dt = Datatracker::new();
@@ -600,6 +639,7 @@ mod ietfdata_tests {
         Ok(())
     }
 
+
     #[test]
     fn test_people_with_name_containing() -> DTResult<()> {
         let dt = Datatracker::new();
@@ -610,6 +650,7 @@ mod ietfdata_tests {
 
         Ok(())
     }
+
 
     #[test]
     fn test_people_between() -> DTResult<()> {
@@ -625,6 +666,7 @@ mod ietfdata_tests {
         Ok(())
     }
 
+
     #[test]
     fn test_person_history() -> DTResult<()> {
         let dt = Datatracker::new();
@@ -636,6 +678,7 @@ mod ietfdata_tests {
 
         Ok(())
     }
+
 
     #[test]
     fn test_person_aliases() -> DTResult<()> {
