@@ -25,9 +25,10 @@
 
  - Revise `PaginatedList` and related types to return `Result<>`
  - Rename `email()` method to `email_from_address()` and add
-   a replacement `email()` method that looks up `Email` from
-   `EmailUri`
+   a replacement `email()` method that takes an `EmailUri`
  - Rename `person_from_email()` to `person_from_email_address()`
+   and add a replacement `person_from_email()` method that takes
+   an `EmailUri`
  - Add new types:
     - `GroupUri`        and `Group`
     - `GroupTypeUri`    and `GroupType`

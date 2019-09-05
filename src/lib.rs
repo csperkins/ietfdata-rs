@@ -507,6 +507,11 @@ impl Datatracker {
     }
 
 
+    pub fn person_from_email(&self, email : &EmailUri) -> DTResult<Person> {
+        let person = self.email(email)?.person;
+        self.person(&person)
+    }
+
     pub fn person_from_email_address(&self, email_addr : &str) -> DTResult<Person> {
         let person = self.email_from_address(email_addr)?.person;
         self.person(&person)
@@ -758,6 +763,18 @@ mod ietfdata_tests {
         assert_eq!(p.consent,         Some(true));
         Ok(())
     }
+
+    #[test]
+    fn test_person_from_email() -> DTResult<()> {
+        let dt = Datatracker::new();
+
+        let p  = dt.person_from_email(&EmailUri("/api/v1/person/email/csp@csperkins.org/".to_string()))?;
+        assert_eq!(p.id,   20209);
+        assert_eq!(p.name, "Colin Perkins");
+
+        Ok(())
+    }
+
 
 
     #[test]
