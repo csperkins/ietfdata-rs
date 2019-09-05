@@ -507,8 +507,8 @@ impl Datatracker {
     }
 
 
-    pub fn person_from_email(&self, email : &str) -> DTResult<Person> {
-        let person = self.email_from_address(email)?.person;
+    pub fn person_from_email_address(&self, email_addr : &str) -> DTResult<Person> {
+        let person = self.email_from_address(email_addr)?.person;
         self.person(&person)
     }
 
@@ -731,7 +731,7 @@ mod ietfdata_tests {
     #[test]
     fn test_email_history_for_person() -> DTResult<()> {
         let dt = Datatracker::new();
-        let p  = dt.person_from_email("csp@csperkins.org")?;
+        let p  = dt.person_from_email_address("csp@csperkins.org")?;
         for h in dt.email_history_for_person(&p) {
             println!("{:?}", h);
         }
@@ -761,10 +761,10 @@ mod ietfdata_tests {
 
 
     #[test]
-    fn test_person_from_email() -> DTResult<()> {
+    fn test_person_from_email_address() -> DTResult<()> {
         let dt = Datatracker::new();
 
-        let p  = dt.person_from_email("csp@csperkins.org")?;
+        let p  = dt.person_from_email_address("csp@csperkins.org")?;
         assert_eq!(p.id,   20209);
         assert_eq!(p.name, "Colin Perkins");
 
@@ -825,7 +825,7 @@ mod ietfdata_tests {
     fn test_person_history() -> DTResult<()> {
         let dt = Datatracker::new();
 
-        let p  = dt.person_from_email("csp@csperkins.org")?;
+        let p  = dt.person_from_email_address("csp@csperkins.org")?;
         let h  = dt.person_history(&p)?.collect::<Result<Vec<_>, _>>()?;
         assert_eq!(h.len(), 2); // As of 2019-08-18, there are two history items for csp@csperkins.org
 
@@ -837,7 +837,7 @@ mod ietfdata_tests {
     fn test_person_aliases() -> DTResult<()> {
         let dt = Datatracker::new();
 
-        let p  = dt.person_from_email("csp@csperkins.org")?;
+        let p  = dt.person_from_email_address("csp@csperkins.org")?;
         let h  = dt.person_aliases(&p)?.collect::<Result<Vec<_>, _>>()?;
         assert_eq!(h.len(), 2); // As of 2019-08-18, there are two aliases for csp@csperkins.org
         assert_eq!(h[0].name, "Dr. Colin Perkins");
