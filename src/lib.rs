@@ -469,13 +469,14 @@ impl Datatracker {
     // * https://datatracker.ietf.org/api/v1/person/email/csp@csperkins.org/
     // * https://datatracker.ietf.org/api/v1/person/historicalemail/
 
-    /// Retrieve information about an email address.
-    ///
-    /// This returns the information held about a particular email address.
-    /// If you want information about the person with a particular address,
-    /// use `person_from_email()`.
-    pub fn email(&self, email : &str) -> DTResult<Email> {
-        let url = format!("https://datatracker.ietf.org/api/v1/person/email/{}/", email);
+    pub fn email(&self, email_uri: &EmailUri) -> DTResult<Email> {
+        assert!(email_uri.0.starts_with("/api/v1/person/email/"));
+        let url = format!("https://datatracker.ietf.org/{}/", email_uri.0);
+        self.retrieve::<Email>(&url)
+    }
+
+    pub fn email_from_address(&self, email_addr : &str) -> DTResult<Email> {
+        let url = format!("https://datatracker.ietf.org/api/v1/person/email/{}/", email_addr);
         self.retrieve::<Email>(&url)
     }
 
@@ -507,7 +508,7 @@ impl Datatracker {
 
 
     pub fn person_from_email(&self, email : &str) -> DTResult<Person> {
-        let person = self.email(email)?.person;
+        let person = self.email_from_address(email)?.person;
         self.person(&person)
     }
 
@@ -680,18 +681,34 @@ mod ietfdata_tests {
     #[test]
     fn test_email() -> DTResult<()> {
         let dt = Datatracker::new();
-        let e  = dt.email("csp@csperkins.org")?;
 
+        let e  = dt.email(&EmailUri("/api/v1/person/email/csp@csperkins.org/".to_string()))?;
         assert_eq!(e.resource_uri, EmailUri("/api/v1/person/email/csp@csperkins.org/".to_string()));
         assert_eq!(e.address,      "csp@csperkins.org");
         assert_eq!(e.person,       PersonUri("/api/v1/person/person/20209/".to_string()));
         assert_eq!(e.time,         Utc.ymd(1970, 1, 1).and_hms(23, 59, 59));
-        //assert_eq!(e.origin,       "author: draft-ietf-mmusic-rfc4566bis");
+        assert_eq!(e.primary,      true);
+        assert_eq!(e.active,       true);
+
+        Ok(())
+    }
+
+
+    #[test]
+    fn test_email_from_address() -> DTResult<()> {
+        let dt = Datatracker::new();
+
+        // Lookup an address that exists:
+        let e  = dt.email_from_address("csp@csperkins.org")?;
+        assert_eq!(e.resource_uri, EmailUri("/api/v1/person/email/csp@csperkins.org/".to_string()));
+        assert_eq!(e.address,      "csp@csperkins.org");
+        assert_eq!(e.person,       PersonUri("/api/v1/person/person/20209/".to_string()));
+        assert_eq!(e.time,         Utc.ymd(1970, 1, 1).and_hms(23, 59, 59));
         assert_eq!(e.primary,      true);
         assert_eq!(e.active,       true);
 
         // Lookup a non-existing address; this should fail
-        assert!(dt.email("nobody@example.com").is_err());
+        assert!(dt.email_from_address("nobody@example.com").is_err());
 
         Ok(())
     }
