@@ -481,8 +481,8 @@ impl Datatracker {
     }
 
 
-    pub fn email_history_for_address<'a>(&'a self, email : &'a str) -> DTResult<PaginatedList<HistoricalEmail>> {
-        let url = format!("https://datatracker.ietf.org/api/v1/person/historicalemail/?address={}", email);
+    pub fn email_history_for_address<'a>(&'a self, email_addr : &'a str) -> DTResult<PaginatedList<HistoricalEmail>> {
+        let url = format!("https://datatracker.ietf.org/api/v1/person/historicalemail/?address={}", email_addr);
         PaginatedList::<'a, HistoricalEmail>::new(self, url)
     }
 
@@ -717,8 +717,8 @@ mod ietfdata_tests {
     #[test]
     fn test_email_history_for_address() -> DTResult<()> {
         let dt = Datatracker::new();
-        let h  = dt.email_history_for_address("csp@isi.edu")?.collect::<Result<Vec<_>, _>>()?;
 
+        let h  = dt.email_history_for_address("csp@isi.edu")?.collect::<Result<Vec<_>, _>>()?;
         assert_eq!(h.len(), 1);
         assert_eq!(h[0].address, "csp@isi.edu");
         assert_eq!(h[0].person,  PersonUri("/api/v1/person/person/20209/".to_string()));
@@ -743,13 +743,12 @@ mod ietfdata_tests {
     #[test]
     fn test_person() -> DTResult<()> {
         let dt = Datatracker::new();
-        let p  = dt.person(&PersonUri("/api/v1/person/person/20209/".to_string()))?;
 
+        let p  = dt.person(&PersonUri("/api/v1/person/person/20209/".to_string()))?;
         assert_eq!(p.id,              20209);
         assert_eq!(p.resource_uri,    PersonUri("/api/v1/person/person/20209/".to_string()));
         assert_eq!(p.name,            "Colin Perkins");
         assert_eq!(p.name_from_draft, Some("Colin Perkins".to_string()));
-        assert_eq!(p.biography,       "Colin Perkins is a Senior Lecturer (Associate Professor) in the School of Computing Science at the University of Glasgow. His research interests are on transport protocols for real-time and interactive multimedia, and on network protocol design, implementation, and specification. He’s been a participant in the IETF and IRTF since 1996, working primarily in the transport area where he co-chairs the RMCAT working group and is a past chair of the AVT and MMUSIC working groups, and in related IRTF research groups. He proposed and co-chaired the first Applied Networking Research Workshop (ANRW), and has been a long-term participant in the Applied Networking Research Prize (ANRP) awarding committee. He received his BEng in Electronic Engineering in 1992, and my PhD in 1996, both from the Department of Electronics at the University of York.");
         assert_eq!(p.ascii,           "Colin Perkins");
         assert_eq!(p.ascii_short,     None);
         assert_eq!(p.time,            Utc.ymd(2012,2,26).and_hms(0,3,54));
@@ -764,8 +763,8 @@ mod ietfdata_tests {
     #[test]
     fn test_person_from_email() -> DTResult<()> {
         let dt = Datatracker::new();
-        let p  = dt.person_from_email("csp@csperkins.org")?;
 
+        let p  = dt.person_from_email("csp@csperkins.org")?;
         assert_eq!(p.id,   20209);
         assert_eq!(p.name, "Colin Perkins");
 
@@ -788,8 +787,8 @@ mod ietfdata_tests {
     #[test]
     fn test_people_with_name() -> DTResult<()> {
         let dt = Datatracker::new();
-        let people = dt.people_with_name("Colin Perkins")?.collect::<Result<Vec<_>, _>>()?;
 
+        let people = dt.people_with_name("Colin Perkins")?.collect::<Result<Vec<_>, _>>()?;
         assert_eq!(people[0].id,   20209);
         assert_eq!(people[0].name, "Colin Perkins");
 
@@ -800,10 +799,9 @@ mod ietfdata_tests {
     #[test]
     fn test_people_with_name_containing() -> DTResult<()> {
         let dt = Datatracker::new();
-        let people = dt.people_with_name_containing("Perkins")?.collect::<Result<Vec<_>, _>>()?;
 
-        // As of 2019-08-17, there are six people named Perkins in the datatracker.
-        assert_eq!(people.len(), 6);
+        let people = dt.people_with_name_containing("Perkins")?.collect::<Result<Vec<_>, _>>()?;
+        assert_eq!(people.len(), 6); // As of 2019-08-17, there are six people named Perkins in the datatracker.
 
         Ok(())
     }
@@ -811,14 +809,13 @@ mod ietfdata_tests {
 
     #[test]
     fn test_people_between() -> DTResult<()> {
+        let dt = Datatracker::new();
+
         let start = Utc.ymd(2019, 7, 1).and_hms( 0,  0,  0);
         let until = Utc.ymd(2019, 7, 7).and_hms(23, 59, 59);
-
-        let dt = Datatracker::new();
         let people = dt.people_between(start, until)?.collect::<Result<Vec<_>, _>>()?;
 
-        // There are 26 people in the tracker with dates in the first week of July 2019
-        assert_eq!(people.len(), 26);
+        assert_eq!(people.len(), 26); // There are 26 people in the tracker dated in the first week of July 2019
 
         Ok(())
     }
@@ -827,11 +824,10 @@ mod ietfdata_tests {
     #[test]
     fn test_person_history() -> DTResult<()> {
         let dt = Datatracker::new();
+
         let p  = dt.person_from_email("csp@csperkins.org")?;
         let h  = dt.person_history(&p)?.collect::<Result<Vec<_>, _>>()?;
-
-        // As of 2019-08-18, there are two history items for csp@csperkins.org
-        assert_eq!(h.len(), 2);
+        assert_eq!(h.len(), 2); // As of 2019-08-18, there are two history items for csp@csperkins.org
 
         Ok(())
     }
@@ -840,11 +836,10 @@ mod ietfdata_tests {
     #[test]
     fn test_person_aliases() -> DTResult<()> {
         let dt = Datatracker::new();
+
         let p  = dt.person_from_email("csp@csperkins.org")?;
         let h  = dt.person_aliases(&p)?.collect::<Result<Vec<_>, _>>()?;
-
-        // As of 2019-08-18, there are two aliases for csp@csperkins.org
-        assert_eq!(h.len(), 2);
+        assert_eq!(h.len(), 2); // As of 2019-08-18, there are two aliases for csp@csperkins.org
         assert_eq!(h[0].name, "Dr. Colin Perkins");
         assert_eq!(h[1].name, "Colin Perkins");
 
