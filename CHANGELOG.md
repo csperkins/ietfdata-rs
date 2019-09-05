@@ -24,6 +24,19 @@
 ## v0.3.0 -- 2019-08-19
 
  - Revise `PaginatedList` and related types to return `Result<>`
+ - Rename `email()` method to `email_from_address()` and add
+   a replacement `email()` method that looks up `Email` from
+   `EmailUri`
+ - Rename `person_from_email()` to `person_from_email_address()`
+ - Add new types:
+    - `GroupUri`        and `Group`
+    - `GroupTypeUri`    and `GroupType`
+    - `GroupStateUri`   and `GroupState`
+    - `DocumentUri`     and `Document`
+    - `SubmissionUri`   and `Submission`
+    - `DocStateUri`     and `DocState`
+    - `DocStateTypeUri` and `DocStateType`
+
 
 
 ## v0.2.4 -- 2019-08-18
