@@ -256,6 +256,146 @@ pub struct PersonAlias {
     pub name         : String,
 }
 
+// --------------------------------------------------------------------------------------------------------------------------------
+// Types relating to groups:
+
+#[derive(Deserialize, Debug, Eq, PartialEq)]
+pub struct GroupUri(String);
+
+#[derive(Deserialize, Debug)]
+pub struct Group {
+    id             : u64,
+    resource_uri   : GroupUri,
+    acronym        : String,
+    name           : String,
+    description    : String,
+    charter        : DocumentUri,
+    ad             : Option<PersonUri>,
+    #[serde(deserialize_with="deserialize_time")]
+    time           : DateTime<Utc>,
+    #[serde(rename = "type")]
+    group_type     : GroupTypeUri,
+    comments       : String,
+    parent         : GroupUri,
+    state          : GroupStateUri,
+    unused_states  : Vec<DocStateUri>,
+    unused_tags    : Vec<String>,
+    list_email     : String,
+    list_subscribe : String,
+    list_archive   : String
+}
+
+
+#[derive(Deserialize, Debug, Eq, PartialEq)]
+pub struct GroupTypeUri(String);
+
+#[derive(Deserialize, Debug)]
+struct GroupType {
+    resource_uri : GroupTypeUri,
+    name         : String,
+    verbose_name : String,
+    slug         : String,
+    desc         : String,
+    used         : bool,
+    order        : u64
+}
+
+
+#[derive(Deserialize, Debug, Eq, PartialEq)]
+pub struct GroupStateUri(String);
+
+#[derive(Deserialize, Debug)]
+struct GroupState {
+    resource_uri : GroupStateUri,
+    desc         : String,
+    name         : String,
+    slug         : String,
+    used         : bool,
+    order        : u64
+}
+
+
+// --------------------------------------------------------------------------------------------------------------------------------
+// Types relating to documents:
+
+#[derive(Deserialize, Debug, Eq, PartialEq)]
+pub struct DocumentUri(String);
+
+
+#[derive(Deserialize, Debug)]
+pub struct Document {
+    id                 : u64,
+    resource_uri       : DocumentUri,
+    name               : String,
+    title              : String,
+    pages              : Option<u64>,
+    words              : Option<u64>,
+    #[serde(deserialize_with="deserialize_time")]
+    time               : DateTime<Utc>,
+    notify             : String,
+    #[serde(deserialize_with="deserialize_time")]
+    expires            : DateTime<Utc>,
+    #[serde(rename = "type")]
+    doc_type           : String,            // FIXME
+    rfc                : Option<u64>,
+    rev                : String,
+    #[serde(rename = "abstract")]
+    doc_abstract       : String,
+    internal_comments  : String,
+    order              : u64,
+    note               : String,
+    ad                 : Option<PersonUri>,
+    shepherd           : Option<EmailUri>,
+    group              : Option<GroupUri>,
+    stream             : Option<String>,    // FIXME
+    std_level          : Option<String>,    // FIXME
+    intended_std_level : Option<String>,    // FIXME
+    states             : Vec<DocStateUri>,
+    submissions        : Vec<SubmissionUri>,
+    tags               : Vec<String>,
+    uploaded_filename  : String,
+    external_url       : String
+}
+
+
+#[derive(Deserialize, Debug, Eq, PartialEq)]
+pub struct SubmissionUri(String);
+
+
+#[derive(Deserialize, Debug)]
+pub struct Submission {
+    // FIXME
+}
+
+
+#[derive(Deserialize, Debug, Eq, PartialEq)]
+pub struct DocStateUri(String);
+
+#[derive(Deserialize, Debug)]
+struct DocState {
+    id           : u64,
+    resource_uri : DocStateUri,
+    name         : String,
+    desc         : String,
+    slug         : String,
+    next_states  : Vec<DocStateUri>,
+    used         : bool,
+    order        : u64,
+    state_type   : DocStateTypeUri,
+}
+
+
+#[derive(Deserialize, Debug, Eq, PartialEq)]
+pub struct DocStateTypeUri(String);
+
+#[derive(Deserialize, Debug)]
+struct DocStateType {
+    resource_uri : DocStateTypeUri,
+    slug         : String,
+    label        : String
+}
+
+
 // =================================================================================================================================
 // The DatatrackerError type:
 
