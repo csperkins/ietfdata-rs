@@ -37,6 +37,9 @@
     - `SubmissionUri`   and `Submission`
     - `DocStateUri`     and `DocState`
     - `DocStateTypeUri` and `DocStateType`
+ - Add new methods:
+    - `doc_state_type()`
+    - `doc_state_types()`
 
 
 

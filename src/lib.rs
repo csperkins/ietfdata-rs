@@ -305,7 +305,7 @@ struct GroupType {
 pub struct GroupStateUri(String);
 
 #[derive(Deserialize, Debug)]
-struct GroupState {
+pub struct GroupState {
     resource_uri : GroupStateUri,
     desc         : String,
     name         : String,
@@ -372,7 +372,7 @@ pub struct Submission {
 pub struct DocStateUri(String);
 
 #[derive(Deserialize, Debug)]
-struct DocState {
+pub struct DocState {
     id           : u64,
     resource_uri : DocStateUri,
     name         : String,
@@ -389,7 +389,7 @@ struct DocState {
 pub struct DocStateTypeUri(String);
 
 #[derive(Deserialize, Debug)]
-struct DocStateType {
+pub struct DocStateType {
     resource_uri : DocStateTypeUri,
     slug         : String,
     label        : String
@@ -562,7 +562,7 @@ impl Datatracker {
     //   https://datatracker.ietf.org/api/v1/doc/document/draft-ietf-avt-rtp-new/ - info about document
     //   https://datatracker.ietf.org/api/v1/doc/docalias/?name=/                 - draft that became the given RFC
     //   https://datatracker.ietf.org/api/v1/doc/state/                           - Types of state a document can be in
-    //   https://datatracker.ietf.org/api/v1/doc/statetype/                       - Possible types of state for a document
+    // * https://datatracker.ietf.org/api/v1/doc/statetype/                       - Possible types of state for a document
     //   https://datatracker.ietf.org/api/v1/doc/docevent/                        - list of document events
     //   https://datatracker.ietf.org/api/v1/doc/docevent/?doc=...                - events for a document
     //   https://datatracker.ietf.org/api/v1/doc/docevent/?by=...                 - events by a person (as /api/v1/person/person)
@@ -593,6 +593,17 @@ impl Datatracker {
     //   https://datatracker.ietf.org/api/v1/doc/addedmessageevent/
     //   https://datatracker.ietf.org/api/v1/doc/editedauthorsdocevent/
 
+    pub fn doc_state_type(&self, state_type_uri: &DocStateTypeUri) -> DTResult<DocStateType> {
+        assert!(state_type_uri.0.starts_with("/api/v1/doc/statetype/"));
+        let url = format!("https://datatracker.ietf.org/{}/", state_type_uri.0);
+        self.retrieve::<DocStateType>(&url)
+    }
+
+
+    pub fn doc_state_types<'a>(&'a self) -> DTResult<PaginatedList<'a, DocStateType>> {
+        let url = format!("https://datatracker.ietf.org/api/v1/doc/statetype/");
+        PaginatedList::<'a, DocStateType>::new(self, url)
+    }
 
 
     // ----------------------------------------------------------------------------------------------------------------------------
@@ -683,6 +694,9 @@ impl Datatracker {
 mod ietfdata_tests {
     use super::*;
 
+    // ----------------------------------------------------------------------------------------------------------------------------
+    // Tests relating to email:
+
     #[test]
     fn test_email() -> DTResult<()> {
         let dt = Datatracker::new();
@@ -731,6 +745,8 @@ mod ietfdata_tests {
         Ok(())
     }
 
+    // ----------------------------------------------------------------------------------------------------------------------------
+    // Tests relating to people:
 
 /*
     #[test]
@@ -859,6 +875,55 @@ mod ietfdata_tests {
         assert_eq!(h.len(), 2); // As of 2019-08-18, there are two aliases for csp@csperkins.org
         assert_eq!(h[0].name, "Dr. Colin Perkins");
         assert_eq!(h[1].name, "Colin Perkins");
+
+        Ok(())
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------------------
+    // Tests relating to documents:
+
+    #[test]
+    fn test_doc_state_type() -> DTResult<()> {
+        let dt = Datatracker::new();
+
+        let uri = DocStateTypeUri("/api/v1/doc/statetype/draft/".to_string());
+        let st  = dt.doc_state_type(&uri)?;
+        assert_eq!(st.resource_uri, uri);
+        assert_eq!(st.slug,  "draft");
+        assert_eq!(st.label, "State");
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_doc_state_types() -> DTResult<()> {
+        let dt = Datatracker::new();
+
+        let st = dt.doc_state_types()?.collect::<Result<Vec<_>, _>>()?;
+        assert_eq!(st.len(), 23);
+        assert_eq!(st[ 0].slug, "draft");
+        assert_eq!(st[ 1].slug, "draft-iesg");
+        assert_eq!(st[ 2].slug, "draft-iana");
+        assert_eq!(st[ 3].slug, "draft-rfceditor");
+        assert_eq!(st[ 4].slug, "draft-stream-ietf");
+        assert_eq!(st[ 5].slug, "draft-stream-irtf");
+        assert_eq!(st[ 6].slug, "draft-stream-ise");
+        assert_eq!(st[ 7].slug, "draft-stream-iab");
+        assert_eq!(st[ 8].slug, "slides");
+        assert_eq!(st[ 9].slug, "minutes");
+        assert_eq!(st[10].slug, "agenda");
+        assert_eq!(st[11].slug, "liai-att");
+        assert_eq!(st[12].slug, "charter");
+        assert_eq!(st[13].slug, "conflrev");
+        assert_eq!(st[14].slug, "draft-iana-action");
+        assert_eq!(st[15].slug, "draft-iana-review");
+        assert_eq!(st[16].slug, "statchg");
+        assert_eq!(st[17].slug, "recording");
+        assert_eq!(st[18].slug, "bluesheets");
+        assert_eq!(st[19].slug, "reuse_policy");
+        assert_eq!(st[20].slug, "review");
+        assert_eq!(st[21].slug, "liaison");
+        assert_eq!(st[22].slug, "shepwrit");
 
         Ok(())
     }
