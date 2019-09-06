@@ -21,9 +21,8 @@
 
 # Change Log
 
-## v0.3.0 -- 2019-08-19
+## v0.3.1 -- ????-??-??
 
- - Revise `PaginatedList` and related types to return `Result<>`
  - Rename `email()` method to `email_from_address()` and add
    a replacement `email()` method that takes an `EmailUri`
  - Rename `person_from_email()` to `person_from_email_address()`
@@ -41,6 +40,10 @@
     - `doc_state_type()`
     - `doc_state_types()`
 
+
+## v0.3.0 -- 2019-08-19
+
+ - Revise `PaginatedList` and related types to return `Result<>`
 
 
 ## v0.2.4 -- 2019-08-18
