@@ -37,8 +37,8 @@
     - `DocStateUri`     and `DocState`
     - `DocStateTypeUri` and `DocStateType`
  - Add new methods:
-    - `doc_state_type()`
-    - `doc_state_types()`
+    - `doc_state()`      and `doc_states()`
+    - `doc_state_type()` and `doc_state_types()`
 
 
 ## v0.3.0 -- 2019-08-19

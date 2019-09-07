@@ -381,6 +381,7 @@ pub struct DocState {
     next_states  : Vec<DocStateUri>,
     used         : bool,
     order        : u64,
+    #[serde(rename = "type")]
     state_type   : DocStateTypeUri,
 }
 
@@ -561,7 +562,7 @@ impl Datatracker {
     //   https://datatracker.ietf.org/api/v1/doc/document/                        - list of documents
     //   https://datatracker.ietf.org/api/v1/doc/document/draft-ietf-avt-rtp-new/ - info about document
     //   https://datatracker.ietf.org/api/v1/doc/docalias/?name=/                 - draft that became the given RFC
-    //   https://datatracker.ietf.org/api/v1/doc/state/                           - Types of state a document can be in
+    // * https://datatracker.ietf.org/api/v1/doc/state/                           - Types of state a document can be in
     // * https://datatracker.ietf.org/api/v1/doc/statetype/                       - Possible types of state for a document
     //   https://datatracker.ietf.org/api/v1/doc/docevent/                        - list of document events
     //   https://datatracker.ietf.org/api/v1/doc/docevent/?doc=...                - events for a document
@@ -592,6 +593,19 @@ impl Datatracker {
     //   https://datatracker.ietf.org/api/v1/doc/deletedevent/
     //   https://datatracker.ietf.org/api/v1/doc/addedmessageevent/
     //   https://datatracker.ietf.org/api/v1/doc/editedauthorsdocevent/
+
+    pub fn doc_state(&self, state_uri: &DocStateUri) -> DTResult<DocState> {
+        assert!(state_uri.0.starts_with("/api/v1/doc/state/"));
+        let url = format!("https://datatracker.ietf.org/{}/", state_uri.0);
+        self.retrieve::<DocState>(&url)
+    }
+
+
+    pub fn doc_states<'a>(&'a self) -> DTResult<PaginatedList<'a, DocState>> {
+        let url = format!("https://datatracker.ietf.org/api/v1/doc/state/");
+        PaginatedList::<'a, DocState>::new(self, url)
+    }
+
 
     pub fn doc_state_type(&self, state_type_uri: &DocStateTypeUri) -> DTResult<DocStateType> {
         assert!(state_type_uri.0.starts_with("/api/v1/doc/statetype/"));
@@ -881,6 +895,34 @@ mod ietfdata_tests {
 
     // ----------------------------------------------------------------------------------------------------------------------------
     // Tests relating to documents:
+
+    #[test]
+    fn test_doc_state() -> DTResult<()> {
+        let dt = Datatracker::new();
+
+        let uri = DocStateUri("/api/v1/doc/state/81/".to_string());
+        let st  = dt.doc_state(&uri)?;
+        assert_eq!(st.id,           81);
+        assert_eq!(st.resource_uri, uri);
+        assert_eq!(st.name,         "Active");
+        assert_eq!(st.desc,         "");
+        assert_eq!(st.slug,         "active");
+        assert_eq!(st.next_states,  vec!());
+        assert_eq!(st.used,         true);
+        assert_eq!(st.order,        1);
+        assert_eq!(st.state_type,   DocStateTypeUri("/api/v1/doc/statetype/agenda/".to_string()));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_doc_states() -> DTResult<()> {
+        let dt = Datatracker::new();
+
+        let st = dt.doc_states()?.collect::<Result<Vec<_>, _>>()?;
+        assert_eq!(st.len(), 148);
+        Ok(())
+    }
 
     #[test]
     fn test_doc_state_type() -> DTResult<()> {
