@@ -46,25 +46,20 @@
 //   RFC 6359 "Datatracker Extensions to Include IANA and RFC Editor Processing Information"
 //   RFC 7760 "Statement of Work for Extensions to the IETF Datatracker for Author Statistics"
 
-extern crate chrono;
-extern crate reqwest;
-extern crate serde;
-extern crate serde_json;
+mod api;
+
+pub use api::email::*;
+pub use api::person::*;
+pub use api::group::*;
+pub use api::document::*;
 
 use chrono::prelude::*;
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
 use std::error;
 use std::fmt;
 
 // =================================================================================================================================
 // Helper functions:
-
-fn deserialize_time<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
-    where D: Deserializer<'de>
-{
-    let s = String::deserialize(deserializer)?;
-    Utc.datetime_from_str(&s, "%Y-%m-%dT%H:%M:%S%.f").map_err(serde::de::Error::custom)
-}
 
 // Generic types representing a paginated list of responses from the Datatracker:
 
@@ -142,262 +137,6 @@ impl<'a, T> Iterator for PaginatedList<'a, T>
 }
 
 // =================================================================================================================================
-// IETF Datatracker types:
-
-// --------------------------------------------------------------------------------------------------------------------------------
-// Types relating to email addresses:
-
-#[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct EmailUri(String);
-
-
-#[derive(Deserialize, Debug)]
-pub struct Email {
-    pub resource_uri : EmailUri,
-    pub address      : String,
-    pub person       : PersonUri,
-    #[serde(deserialize_with="deserialize_time")]
-    pub time         : DateTime<Utc>,
-    pub origin       : String,
-    pub primary      : bool,
-    pub active       : bool
-}
-
-
-#[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct HistoricalEmailUri(String);
-
-
-#[derive(Deserialize, Debug)]
-pub struct HistoricalEmail {
-    // Fields common with Email:
-    pub resource_uri          : HistoricalEmailUri,
-    pub address               : String,
-    pub person                : PersonUri,
-    #[serde(deserialize_with="deserialize_time")]
-    pub time                  : DateTime<Utc>,
-    pub origin                : String,
-    pub primary               : bool,
-    pub active                : bool,
-    // Fields recording the history:
-    pub history_change_reason : Option<String>,
-    pub history_user          : Option<String>,
-    pub history_id            : u64,
-    pub history_type          : String,
-    #[serde(deserialize_with="deserialize_time")]
-    pub history_date          : DateTime<Utc>
-}
-
-
-// --------------------------------------------------------------------------------------------------------------------------------
-// Types relating to people:
-
-#[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct PersonUri(String);
-
-
-#[derive(Deserialize, Debug)]
-pub struct Person {
-    pub id              : u64,
-    pub resource_uri    : PersonUri,
-    pub name            : String,
-    pub name_from_draft : Option<String>,
-    pub biography       : String,
-    pub ascii           : String,
-    pub ascii_short     : Option<String>,
-    #[serde(deserialize_with="deserialize_time")]
-    pub time            : DateTime<Utc>,
-    pub photo           : Option<String>,  // Actually a URL
-    pub photo_thumb     : Option<String>,  // Actually a URL
-    pub user            : Option<String>,
-    pub consent         : Option<bool>
-}
-
-
-#[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct HistoricalPersonUri(String);
-
-
-#[derive(Deserialize, Debug)]
-pub struct HistoricalPerson {
-    // Fields common with Person:
-    pub id                    : u64,
-    pub resource_uri          : HistoricalPersonUri,
-    pub name                  : String,
-    pub name_from_draft       : String,
-    pub biography             : String,
-    pub ascii                 : String,
-    pub ascii_short           : Option<String>,
-    #[serde(deserialize_with="deserialize_time")]
-    pub time                  : DateTime<Utc>,
-    pub photo                 : Option<String>, // Actually a URL
-    pub photo_thumb           : Option<String>, // Actually a URL
-    pub user                  : String,
-    pub consent               : Option<bool>,
-    // Fields recording the history:
-    pub history_change_reason : Option<String>,
-    pub history_user          : String,
-    pub history_type          : String,
-    pub history_id            : u64,
-    #[serde(deserialize_with="deserialize_time")]
-    pub history_date          : DateTime<Utc>,
-}
-
-
-#[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct PersonAliasUri(String);
-
-
-#[derive(Deserialize, Debug)]
-pub struct PersonAlias {
-    pub id           : u64,
-    pub resource_uri : PersonAliasUri,
-    pub person       : PersonUri,
-    pub name         : String,
-}
-
-// --------------------------------------------------------------------------------------------------------------------------------
-// Types relating to groups:
-
-#[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct GroupUri(String);
-
-#[derive(Deserialize, Debug)]
-pub struct Group {
-    id             : u64,
-    resource_uri   : GroupUri,
-    acronym        : String,
-    name           : String,
-    description    : String,
-    charter        : DocumentUri,
-    ad             : Option<PersonUri>,
-    #[serde(deserialize_with="deserialize_time")]
-    time           : DateTime<Utc>,
-    #[serde(rename = "type")]
-    group_type     : GroupTypeUri,
-    comments       : String,
-    parent         : GroupUri,
-    state          : GroupStateUri,
-    unused_states  : Vec<DocStateUri>,
-    unused_tags    : Vec<String>,
-    list_email     : String,
-    list_subscribe : String,
-    list_archive   : String
-}
-
-
-#[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct GroupTypeUri(String);
-
-#[derive(Deserialize, Debug)]
-struct GroupType {
-    resource_uri : GroupTypeUri,
-    name         : String,
-    verbose_name : String,
-    slug         : String,
-    desc         : String,
-    used         : bool,
-    order        : u64
-}
-
-
-#[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct GroupStateUri(String);
-
-#[derive(Deserialize, Debug)]
-pub struct GroupState {
-    resource_uri : GroupStateUri,
-    desc         : String,
-    name         : String,
-    slug         : String,
-    used         : bool,
-    order        : u64
-}
-
-
-// --------------------------------------------------------------------------------------------------------------------------------
-// Types relating to documents:
-
-#[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct DocumentUri(String);
-
-
-#[derive(Deserialize, Debug)]
-pub struct Document {
-    id                 : u64,
-    resource_uri       : DocumentUri,
-    name               : String,
-    title              : String,
-    pages              : Option<u64>,
-    words              : Option<u64>,
-    #[serde(deserialize_with="deserialize_time")]
-    time               : DateTime<Utc>,
-    notify             : String,
-    #[serde(deserialize_with="deserialize_time")]
-    expires            : DateTime<Utc>,
-    #[serde(rename = "type")]
-    doc_type           : String,            // FIXME
-    rfc                : Option<u64>,
-    rev                : String,
-    #[serde(rename = "abstract")]
-    doc_abstract       : String,
-    internal_comments  : String,
-    order              : u64,
-    note               : String,
-    ad                 : Option<PersonUri>,
-    shepherd           : Option<EmailUri>,
-    group              : Option<GroupUri>,
-    stream             : Option<String>,    // FIXME
-    std_level          : Option<String>,    // FIXME
-    intended_std_level : Option<String>,    // FIXME
-    states             : Vec<DocStateUri>,
-    submissions        : Vec<SubmissionUri>,
-    tags               : Vec<String>,
-    uploaded_filename  : String,
-    external_url       : String
-}
-
-
-#[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct SubmissionUri(String);
-
-
-#[derive(Deserialize, Debug)]
-pub struct Submission {
-    // FIXME
-}
-
-
-#[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct DocStateUri(String);
-
-#[derive(Deserialize, Debug)]
-pub struct DocState {
-    id           : u64,
-    resource_uri : DocStateUri,
-    name         : String,
-    desc         : String,
-    slug         : String,
-    next_states  : Vec<DocStateUri>,
-    used         : bool,
-    order        : u64,
-    #[serde(rename = "type")]
-    state_type   : DocStateTypeUri,
-}
-
-
-#[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct DocStateTypeUri(String);
-
-#[derive(Deserialize, Debug)]
-pub struct DocStateType {
-    resource_uri : DocStateTypeUri,
-    slug         : String,
-    label        : String
-}
-
-
-// =================================================================================================================================
 // The DatatrackerError type:
 
 #[derive(Debug)]
@@ -471,7 +210,6 @@ impl Datatracker {
     // * https://datatracker.ietf.org/api/v1/person/historicalemail/
 
     pub fn email(&self, email_uri: &EmailUri) -> DTResult<Email> {
-        assert!(email_uri.0.starts_with("/api/v1/person/email/"));
         let url = format!("https://datatracker.ietf.org/{}/", email_uri.0);
         self.retrieve::<Email>(&url)
     }
@@ -502,7 +240,6 @@ impl Datatracker {
     // * https://datatracker.ietf.org/api/v1/person/alias/
 
     pub fn person(&self, person_uri : &PersonUri) -> DTResult<Person> {
-        assert!(person_uri.0.starts_with("/api/v1/person/person/"));
         let url = format!("https://datatracker.ietf.org/{}/", person_uri.0);
         self.retrieve::<Person>(&url)
     }
@@ -531,6 +268,7 @@ impl Datatracker {
     }
 
 
+    // FIXME: builder pattern for this, and similar functions
     pub fn people<'a>(&'a self) -> DTResult<PaginatedList<'a, Person>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/");
         PaginatedList::<'a, Person>::new(self, url)
@@ -595,7 +333,6 @@ impl Datatracker {
     //   https://datatracker.ietf.org/api/v1/doc/editedauthorsdocevent/
 
     pub fn doc_state(&self, state_uri: &DocStateUri) -> DTResult<DocState> {
-        assert!(state_uri.0.starts_with("/api/v1/doc/state/"));
         let url = format!("https://datatracker.ietf.org/{}/", state_uri.0);
         self.retrieve::<DocState>(&url)
     }
@@ -608,7 +345,6 @@ impl Datatracker {
 
 
     pub fn doc_state_type(&self, state_type_uri: &DocStateTypeUri) -> DTResult<DocStateType> {
-        assert!(state_type_uri.0.starts_with("/api/v1/doc/statetype/"));
         let url = format!("https://datatracker.ietf.org/{}/", state_type_uri.0);
         self.retrieve::<DocStateType>(&url)
     }
