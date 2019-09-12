@@ -656,7 +656,7 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let st = dt.doc_states()?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(st.len(), 152);
+        assert_eq!(st.len(), 153);
         Ok(())
     }
 
