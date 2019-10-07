@@ -610,7 +610,7 @@ mod ietfdata_tests {
 
         let p  = dt.person_from_email_address("csp@csperkins.org")?;
         let h  = dt.person_history(&p)?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(h.len(), 2); // As of 2019-08-18, there are two history items for csp@csperkins.org
+        assert_eq!(h.len(), 3); // As of 2019-09-29, there are two history items for csp@csperkins.org
 
         Ok(())
     }
