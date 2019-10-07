@@ -488,9 +488,11 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let h  = dt.email_history_for_address("csp@isi.edu")?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(h.len(), 1);
+        assert_eq!(h.len(), 2);
         assert_eq!(h[0].address, "csp@isi.edu");
         assert_eq!(h[0].person,  PersonUri("/api/v1/person/person/20209/".to_string()));
+        assert_eq!(h[1].address, "csp@isi.edu");
+        assert_eq!(h[1].person,  PersonUri("/api/v1/person/person/20209/".to_string()));
 
         Ok(())
     }
