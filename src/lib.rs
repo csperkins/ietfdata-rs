@@ -521,7 +521,7 @@ mod ietfdata_tests {
         assert_eq!(p.name,            "Colin Perkins");
         assert_eq!(p.name_from_draft, Some("Colin Perkins".to_string()));
         assert_eq!(p.ascii,           "Colin Perkins");
-        assert_eq!(p.ascii_short,     None);
+        assert_eq!(p.ascii_short,     Some("".to_string()));
         assert_eq!(p.time,            Utc.ymd(2012,2,26).and_hms(0,3,54));
         assert_eq!(p.photo,           Some("https://www.ietf.org/lib/dt/media/photo/Colin-Perkins-sm.jpg".to_string()));
         assert_eq!(p.photo_thumb,     Some("https://www.ietf.org/lib/dt/media/photo/Colin-Perkins-sm_PMIAhXi.jpg".to_string()));
