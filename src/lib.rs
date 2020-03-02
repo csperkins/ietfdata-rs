@@ -1,4 +1,4 @@
-// Copyright (C) 2019 University of Glasgow
+// Copyright (C) 2019-2020 University of Glasgow
 // 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions 
@@ -48,136 +48,18 @@
 
 mod api;
 
+pub use api::*;
 pub use api::email::*;
 pub use api::person::*;
 pub use api::group::*;
 pub use api::document::*;
 
 use chrono::prelude::*;
+
 use serde::Deserialize;
-use std::error;
-use std::fmt;
-
-// =================================================================================================================================
-// Helper functions:
-
-// Generic types representing a paginated list of responses from the Datatracker:
-
-#[derive(Deserialize, Debug)]
-struct Meta {
-    total_count : u32,
-    limit       : u32,
-    offset      : u32,
-    previous    : Option<String>,
-    next        : Option<String>
-}
-
-#[derive(Deserialize, Debug)]
-struct Page<T> {
-    meta        : Meta,
-    objects     : Vec<T>
-}
-
-pub struct PaginatedList<'a, T> {
-    iter : <Vec<T> as IntoIterator>::IntoIter,
-    next : Option<String>,
-    dt   : &'a Datatracker
-}
-
-impl<'a, T> PaginatedList<'a, T>
-    where for<'de> T: Deserialize<'de>
-{
-    pub fn new(dt: &'a Datatracker, url : String) -> Result<Self, DatatrackerError> {
-        let mut res = dt.connection.get(&url).send()?;
-        let pl : Page<T> = res.json()?;
-
-        Ok(Self {
-            next : pl.meta.next.clone(),
-            iter : pl.objects.into_iter(),
-            dt   : dt
-        })
-    }
-
-    fn try_next(&mut self) -> Result<Option<T>, DatatrackerError> {
-        match self.iter.next() {
-            Some(x) => {
-                Ok(Some(x))
-            }
-            None => {
-                match self.next.clone() {
-                    Some(ref url_frag) => {
-                        let url = format!("https://datatracker.ietf.org/{}", url_frag);
-                        let mut res = self.dt.connection.get(&url).send()?;
-                        let pl : Page<T> = res.json()?;
-                        self.next = pl.meta.next.clone();
-                        self.iter = pl.objects.into_iter();
-                        self.try_next()
-                    }
-                    None => {
-                        Ok(None)
-                    }
-                }
-            }
-        }
-    }
-}
-
-impl<'a, T> Iterator for PaginatedList<'a, T>
-    where for<'de> T: Deserialize<'de>
-{
-    type Item = Result<T, DatatrackerError>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.try_next() {
-            Ok(None)    => None,
-            Ok(Some(x)) => Some(Ok(x)),
-            Err(e)      => Some(Err(e))
-        }
-    }
-}
-
-// =================================================================================================================================
-// The DatatrackerError type:
-
-#[derive(Debug)]
-pub enum DatatrackerError {
-    NotFound,
-    IoError(reqwest::Error)
-}
-
-
-impl fmt::Display for DatatrackerError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            DatatrackerError::NotFound => write!(f, "Not found"),
-            DatatrackerError::IoError(ref e) => e.fmt(f)
-        }
-    }
-}
-
-
-impl error::Error for DatatrackerError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match *self {
-            DatatrackerError::NotFound => None,
-            DatatrackerError::IoError(ref e) => Some(e)
-        }
-    }
-}
-
-
-impl From<reqwest::Error> for DatatrackerError {
-    fn from(err: reqwest::Error) -> DatatrackerError {
-        DatatrackerError::IoError(err)
-    }
-}
-
 
 // =================================================================================================================================
 // IETF Datatracker API:
-
-type DTResult<T> = Result<T, DatatrackerError>;
-
 
 pub struct Datatracker {
     connection : reqwest::Client
@@ -222,13 +104,13 @@ impl Datatracker {
 
     pub fn email_history_for_address<'a>(&'a self, email_addr : &'a str) -> DTResult<PaginatedList<HistoricalEmail>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/historicalemail/?address={}", email_addr);
-        PaginatedList::<'a, HistoricalEmail>::new(self, url)
+        PaginatedList::<'a, HistoricalEmail>::new(&self.connection, url)
     }
 
 
     pub fn email_history_for_person<'a>(&'a self, person : &'a Person) -> DTResult<PaginatedList<HistoricalEmail>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/historicalemail/?person={}", person.id);
-        PaginatedList::<'a, HistoricalEmail>::new(self, url)
+        PaginatedList::<'a, HistoricalEmail>::new(&self.connection, url)
     }
 
 
@@ -258,32 +140,32 @@ impl Datatracker {
 
     pub fn person_aliases<'a>(&'a self, person : &'a Person) -> DTResult<PaginatedList<PersonAlias>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/alias/?person={}", person.id);
-        PaginatedList::<'a, PersonAlias>::new(self, url)
+        PaginatedList::<'a, PersonAlias>::new(&self.connection, url)
     }
 
 
     pub fn person_history<'a>(&'a self, person : &'a Person) -> DTResult<PaginatedList<HistoricalPerson>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/historicalperson/?id={}", person.id);
-        PaginatedList::<'a, HistoricalPerson>::new(self, url)
+        PaginatedList::<'a, HistoricalPerson>::new(&self.connection, url)
     }
 
 
     // FIXME: builder pattern for this, and similar functions
     pub fn people<'a>(&'a self) -> DTResult<PaginatedList<'a, Person>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/");
-        PaginatedList::<'a, Person>::new(self, url)
+        PaginatedList::<'a, Person>::new(&self.connection, url)
     }
 
 
     pub fn people_with_name<'a>(&'a self, name: &'a str) -> DTResult<PaginatedList<'a, Person>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?name={}", name);
-        PaginatedList::<'a, Person>::new(self, url)
+        PaginatedList::<'a, Person>::new(&self.connection, url)
     }
 
 
     pub fn people_with_name_containing<'a>(&'a self, name_contains: &'a str) -> DTResult<PaginatedList<'a, Person>> {
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?name__contains={}", name_contains);
-        PaginatedList::<'a, Person>::new(self, url)
+        PaginatedList::<'a, Person>::new(&self.connection, url)
     }
 
 
@@ -291,7 +173,7 @@ impl Datatracker {
         let s =  start.format("%Y-%m-%dT%H:%M:%S");
         let b = before.format("%Y-%m-%dT%H:%M:%S");
         let url = format!("https://datatracker.ietf.org/api/v1/person/person/?time__gte={}&time__lt={}", &s, &b);
-        PaginatedList::<'a, Person>::new(self, url)
+        PaginatedList::<'a, Person>::new(&self.connection, url)
     }
 
 
@@ -340,7 +222,7 @@ impl Datatracker {
 
     pub fn doc_states<'a>(&'a self) -> DTResult<PaginatedList<'a, DocState>> {
         let url = format!("https://datatracker.ietf.org/api/v1/doc/state/");
-        PaginatedList::<'a, DocState>::new(self, url)
+        PaginatedList::<'a, DocState>::new(&self.connection, url)
     }
 
 
@@ -352,7 +234,7 @@ impl Datatracker {
 
     pub fn doc_state_types<'a>(&'a self) -> DTResult<PaginatedList<'a, DocStateType>> {
         let url = format!("https://datatracker.ietf.org/api/v1/doc/statetype/");
-        PaginatedList::<'a, DocStateType>::new(self, url)
+        PaginatedList::<'a, DocStateType>::new(&self.connection, url)
     }
 
 

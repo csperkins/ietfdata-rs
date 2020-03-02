@@ -30,8 +30,13 @@ pub mod person;
 pub mod group;
 pub mod document;
 
+use std::error;
+use std::fmt;
+
 use chrono::prelude::*;
 use serde::{Deserialize, Deserializer};
+
+// =================================================================================================
 
 pub fn deserialize_time<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
     where D: Deserializer<'de>
@@ -40,3 +45,119 @@ pub fn deserialize_time<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Err
     Utc.datetime_from_str(&s, "%Y-%m-%dT%H:%M:%S%.f").map_err(serde::de::Error::custom)
 }
 
+// =================================================================================================
+// Generic types representing a paginated list of responses from the Datatracker:
+
+#[derive(Deserialize, Debug)]
+pub struct Meta {
+    pub total_count : u32,
+    pub limit       : u32,
+    pub offset      : u32,
+    pub previous    : Option<String>,
+    pub next        : Option<String>
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Page<T> {
+    pub meta        : Meta,
+    pub objects     : Vec<T>
+}
+
+pub struct PaginatedList<'a, T> {
+    pub iter : <Vec<T> as IntoIterator>::IntoIter,
+    pub next : Option<String>,
+    pub conn : &'a reqwest::Client
+}
+
+impl<'a, T> PaginatedList<'a, T>
+    where for<'de> T: Deserialize<'de>
+{
+    pub fn new(conn: &'a reqwest::Client, url : String) -> Result<Self, DatatrackerError> {
+        let mut res = conn.get(&url).send()?;
+        let pl : Page<T> = res.json()?;
+
+        Ok(Self {
+            next : pl.meta.next.clone(),
+            iter : pl.objects.into_iter(),
+            conn : conn
+        })
+    }
+
+    fn try_next(&mut self) -> Result<Option<T>, DatatrackerError> {
+        match self.iter.next() {
+            Some(x) => {
+                Ok(Some(x))
+            }
+            None => {
+                match self.next.clone() {
+                    Some(ref url_frag) => {
+                        let url = format!("https://datatracker.ietf.org/{}", url_frag);
+                        let mut res = self.conn.get(&url).send()?;
+                        let pl : Page<T> = res.json()?;
+                        self.next = pl.meta.next.clone();
+                        self.iter = pl.objects.into_iter();
+                        self.try_next()
+                    }
+                    None => {
+                        Ok(None)
+                    }
+                }
+            }
+        }
+    }
+}
+
+impl<'a, T> Iterator for PaginatedList<'a, T>
+    where for<'de> T: Deserialize<'de>
+{
+    type Item = Result<T, DatatrackerError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.try_next() {
+            Ok(None)    => None,
+            Ok(Some(x)) => Some(Ok(x)),
+            Err(e)      => Some(Err(e))
+        }
+    }
+}
+
+
+// =================================================================================================
+// The DatatrackerError type:
+
+#[derive(Debug)]
+pub enum DatatrackerError {
+    NotFound,
+    IoError(reqwest::Error)
+}
+
+
+impl fmt::Display for DatatrackerError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            DatatrackerError::NotFound => write!(f, "Not found"),
+            DatatrackerError::IoError(ref e) => e.fmt(f)
+        }
+    }
+}
+
+
+impl error::Error for DatatrackerError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match *self {
+            DatatrackerError::NotFound => None,
+            DatatrackerError::IoError(ref e) => Some(e)
+        }
+    }
+}
+
+
+impl From<reqwest::Error> for DatatrackerError {
+    fn from(err: reqwest::Error) -> DatatrackerError {
+        DatatrackerError::IoError(err)
+    }
+}
+
+pub type DTResult<T> = Result<T, DatatrackerError>;
+
+// =================================================================================================
