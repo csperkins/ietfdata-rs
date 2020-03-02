@@ -1,4 +1,4 @@
-// Copyright (C) 2019 University of Glasgow
+// Copyright (C) 2019-2020 University of Glasgow
 // 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions 
@@ -28,7 +28,7 @@
 use chrono::prelude::*;
 use serde::Deserialize;
 
-use super::deserialize_time;
+use super::*;
 
 // --------------------------------------------------------------------------------------------------------------------------------
 // Types relating to people:
@@ -95,6 +95,45 @@ pub struct PersonAlias {
     pub resource_uri : PersonAliasUri,
     pub person       : PersonUri,
     pub name         : String,
+}
+
+// --------------------------------------------------------------------------------------------------------------------------------
+
+
+pub struct PersonFilter {
+    query_url   : String,
+    params      : Vec<String>
+}
+
+impl PersonFilter {
+    fn new(query_url : String) -> PersonFilter {
+        PersonFilter {
+            query_url : query_url,
+            params    : Vec::new()
+        }
+    }
+
+    fn since(mut self, date : DateTime<Utc>) -> PersonFilter {
+        unimplemented!();
+    }
+
+    fn until(mut self, date : DateTime<Utc>) -> PersonFilter {
+        unimplemented!();
+    }
+
+    fn with_name(mut self, name : String) -> PersonFilter {
+        self.params.push(format!("name={}", name));
+        self
+    }
+
+    fn with_name_containing(mut self, name : String) -> PersonFilter {
+        self.params.push(format!("name__contains={}", name));
+        self
+    }
+
+    fn fetch<'a>(self) -> DTResult<PaginatedList<'a, Person>> {
+        unimplemented!();
+    }
 }
 
 // --------------------------------------------------------------------------------------------------------------------------------
