@@ -370,11 +370,11 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let h  = dt.email_history_for_address("csp@isi.edu")?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(h.len(), 2);
-        assert_eq!(h[0].address, "csp@isi.edu");
-        assert_eq!(h[0].person,  PersonUri("/api/v1/person/person/20209/".to_string()));
-        assert_eq!(h[1].address, "csp@isi.edu");
-        assert_eq!(h[1].person,  PersonUri("/api/v1/person/person/20209/".to_string()));
+        assert_eq!(h.len(), 4);
+        assert_eq!(h[0].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/128355/".to_string()));
+        assert_eq!(h[1].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/128350/".to_string()));
+        assert_eq!(h[2].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/71987/".to_string()));
+        assert_eq!(h[3].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/2090/".to_string()));
 
         Ok(())
     }
@@ -494,7 +494,12 @@ mod ietfdata_tests {
 
         let p  = dt.person_from_email_address("csp@csperkins.org")?;
         let h  = dt.person_history(&p)?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(h.len(), 3); // As of 2019-09-29, there are two history items for csp@csperkins.org
+        assert_eq!(h.len(), 5);
+        assert_eq!(h[0].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/17735/".to_string()));
+        assert_eq!(h[1].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/17734/".to_string()));
+        assert_eq!(h[2].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/11731/".to_string()));
+        assert_eq!(h[3].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/10878/".to_string()));
+        assert_eq!(h[4].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/127/".to_string()));
 
         Ok(())
     }
