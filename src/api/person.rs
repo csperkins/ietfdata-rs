@@ -56,7 +56,7 @@ pub struct Person {
 
 
 #[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct HistoricalPersonUri(String);
+pub struct HistoricalPersonUri(pub String);
 
 
 #[derive(Deserialize, Debug)]

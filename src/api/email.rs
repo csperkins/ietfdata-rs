@@ -52,7 +52,7 @@ pub struct Email {
 
 
 #[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct HistoricalEmailUri(String);
+pub struct HistoricalEmailUri(pub String);
 
 
 #[derive(Deserialize, Debug)]
