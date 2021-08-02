@@ -482,7 +482,7 @@ mod ietfdata_tests {
         let until = Utc.ymd(2019, 7, 7).and_hms(23, 59, 59);
         let people = dt.people_between(start, until)?.collect::<Result<Vec<_>, _>>()?;
 
-        assert_eq!(people.len(), 26); // There are 26 people in the tracker dated in the first week of July 2019
+        assert_eq!(people.len(), 25); // There are 25 people in the tracker dated in the first week of July 2019
 
         Ok(())
     }
