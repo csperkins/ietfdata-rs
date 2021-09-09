@@ -545,7 +545,7 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let st = dt.doc_states()?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(st.len(), 160);
+        assert_eq!(st.len(), 162);
         Ok(())
     }
 
@@ -567,7 +567,7 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let st = dt.doc_state_types()?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(st.len(), 25);
+        assert_eq!(st.len(), 26);
         assert_eq!(st[ 0].slug, "draft");
         assert_eq!(st[ 1].slug, "draft-iesg");
         assert_eq!(st[ 2].slug, "draft-iana");
@@ -593,6 +593,7 @@ mod ietfdata_tests {
         assert_eq!(st[22].slug, "shepwrit");
         assert_eq!(st[23].slug, "draft-iana-experts");
         assert_eq!(st[24].slug, "bofreq");
+        assert_eq!(st[25].slug, "procmaterials");
 
         Ok(())
     }
