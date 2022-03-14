@@ -91,7 +91,7 @@ impl<'a, T> PaginatedList<'a, T>
             None => {
                 match self.next.clone() {
                     Some(ref url_frag) => {
-                        let url = format!("https://datatracker.ietf.org/{}", url_frag);
+                        let url = format!("https://datatracker.ietf.org{}", url_frag);
                         let mut res = self.conn.get(&url).send()?;
                         let pl : Page<T> = res.json()?;
                         self.next = pl.meta.next.clone();

@@ -92,7 +92,7 @@ impl Datatracker {
     // * https://datatracker.ietf.org/api/v1/person/historicalemail/
 
     pub fn email(&self, email_uri: &EmailUri) -> DTResult<Email> {
-        let url = format!("https://datatracker.ietf.org/{}/", email_uri.0);
+        let url = format!("https://datatracker.ietf.org{}", email_uri.0);
         self.retrieve::<Email>(&url)
     }
 
@@ -122,7 +122,7 @@ impl Datatracker {
     // * https://datatracker.ietf.org/api/v1/person/alias/
 
     pub fn person(&self, person_uri : &PersonUri) -> DTResult<Person> {
-        let url = format!("https://datatracker.ietf.org/{}/", person_uri.0);
+        let url = format!("https://datatracker.ietf.org{}", person_uri.0);
         self.retrieve::<Person>(&url)
     }
 
@@ -215,7 +215,8 @@ impl Datatracker {
     //   https://datatracker.ietf.org/api/v1/doc/editedauthorsdocevent/
 
     pub fn doc_state(&self, state_uri: &DocStateUri) -> DTResult<DocState> {
-        let url = format!("https://datatracker.ietf.org/{}/", state_uri.0);
+        let url = format!("https://datatracker.ietf.org{}", state_uri.0);
+        println!("{:?}", url);
         self.retrieve::<DocState>(&url)
     }
 
@@ -227,7 +228,7 @@ impl Datatracker {
 
 
     pub fn doc_state_type(&self, state_type_uri: &DocStateTypeUri) -> DTResult<DocStateType> {
-        let url = format!("https://datatracker.ietf.org/{}/", state_type_uri.0);
+        let url = format!("https://datatracker.ietf.org{}", state_type_uri.0);
         self.retrieve::<DocStateType>(&url)
     }
 
@@ -493,7 +494,9 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let p  = dt.person_from_email_address("csp@csperkins.org")?;
+        println!("{:?}", p);
         let h  = dt.person_history(&p)?.collect::<Result<Vec<_>, _>>()?;
+        println!("{:?}", h);
         assert_eq!(h.len(), 5);
         assert_eq!(h[0].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/17735/".to_string()));
         assert_eq!(h[1].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/17734/".to_string()));
