@@ -469,7 +469,7 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let people = dt.people_with_name_containing("Perkins")?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(people.len(), 6); // As of 2019-08-17, there are six people named Perkins in the datatracker.
+        assert_eq!(people.len(), 7); // As of 2022-03-28, there are 7 people named Perkins in the datatracker.
 
         Ok(())
     }
