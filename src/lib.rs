@@ -371,11 +371,12 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let h  = dt.email_history_for_address("csp@isi.edu")?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(h.len(), 4);
-        assert_eq!(h[0].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/128355/".to_string()));
-        assert_eq!(h[1].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/128350/".to_string()));
-        assert_eq!(h[2].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/71987/".to_string()));
-        assert_eq!(h[3].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/2090/".to_string()));
+        assert_eq!(h.len(), 5);
+        assert_eq!(h[0].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/161025/".to_string()));
+        assert_eq!(h[1].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/128355/".to_string()));
+        assert_eq!(h[2].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/128350/".to_string()));
+        assert_eq!(h[3].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/71987/".to_string()));
+        assert_eq!(h[4].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/2090/".to_string()));
 
         Ok(())
     }
@@ -406,10 +407,10 @@ mod ietfdata_tests {
         assert_eq!(p.name,            "Colin Perkins");
         assert_eq!(p.name_from_draft, Some("Colin Perkins".to_string()));
         assert_eq!(p.ascii,           "Colin Perkins");
-        assert_eq!(p.ascii_short,     Some("".to_string()));
+        assert_eq!(p.ascii_short,     None);
         assert_eq!(p.time,            Utc.ymd(2012,2,26).and_hms(0,3,54));
-        assert_eq!(p.photo,           Some("https://www.ietf.org/lib/dt/media/photo/Colin-Perkins-sm.jpg".to_string()));
-        assert_eq!(p.photo_thumb,     Some("https://www.ietf.org/lib/dt/media/photo/Colin-Perkins-sm_PMIAhXi.jpg".to_string()));
+        assert_eq!(p.photo,           Some("https://www.ietf.org/lib/dt/media/photo/csp-square.jpg".to_string()));
+        assert_eq!(p.photo_thumb,     Some("https://www.ietf.org/lib/dt/media/photo/csp-square_GDMMZmn.jpg".to_string()));
         assert_eq!(p.user,            Some("".to_string()));
         assert_eq!(p.consent,         Some(true));
         Ok(())
@@ -497,12 +498,14 @@ mod ietfdata_tests {
         println!("{:?}", p);
         let h  = dt.person_history(&p)?.collect::<Result<Vec<_>, _>>()?;
         println!("{:?}", h);
-        assert_eq!(h.len(), 5);
-        assert_eq!(h[0].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/17735/".to_string()));
-        assert_eq!(h[1].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/17734/".to_string()));
-        assert_eq!(h[2].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/11731/".to_string()));
-        assert_eq!(h[3].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/10878/".to_string()));
-        assert_eq!(h[4].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/127/".to_string()));
+        assert_eq!(h.len(), 7);
+        assert_eq!(h[0].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/24980/".to_string()));
+        assert_eq!(h[1].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/24978/".to_string()));
+        assert_eq!(h[2].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/17735/".to_string()));
+        assert_eq!(h[3].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/17734/".to_string()));
+        assert_eq!(h[4].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/11731/".to_string()));
+        assert_eq!(h[5].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/10878/".to_string()));
+        assert_eq!(h[6].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/127/".to_string()));
 
         Ok(())
     }
