@@ -413,7 +413,6 @@ mod ietfdata_tests {
         assert_eq!(p.photo,           Some("https://www.ietf.org/lib/dt/media/photo/csp-square.jpg".to_string()));
         assert_eq!(p.photo_thumb,     Some("https://www.ietf.org/lib/dt/media/photo/csp-square_GDMMZmn.jpg".to_string()));
         assert_eq!(p.user,            Some("".to_string()));
-        assert_eq!(p.consent,         Some(true));
         Ok(())
     }
 
@@ -553,7 +552,7 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let st = dt.doc_states()?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(st.len(), 162);
+        assert_eq!(st.len(), 166);
         Ok(())
     }
 
@@ -575,7 +574,7 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let st = dt.doc_state_types()?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(st.len(), 26);
+        assert_eq!(st.len(), 28);
         assert_eq!(st[ 0].slug, "draft");
         assert_eq!(st[ 1].slug, "draft-iesg");
         assert_eq!(st[ 2].slug, "draft-iana");
@@ -602,6 +601,8 @@ mod ietfdata_tests {
         assert_eq!(st[23].slug, "draft-iana-experts");
         assert_eq!(st[24].slug, "bofreq");
         assert_eq!(st[25].slug, "procmaterials");
+        assert_eq!(st[26].slug, "chatlog");
+        assert_eq!(st[27].slug, "polls");
 
         Ok(())
     }
