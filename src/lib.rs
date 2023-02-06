@@ -552,7 +552,7 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let st = dt.doc_states()?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(st.len(), 166);
+        assert_eq!(st.len(), 171);
         Ok(())
     }
 
@@ -574,7 +574,7 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let st = dt.doc_state_types()?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(st.len(), 28);
+        assert_eq!(st.len(), 29);
         assert_eq!(st[ 0].slug, "draft");
         assert_eq!(st[ 1].slug, "draft-iesg");
         assert_eq!(st[ 2].slug, "draft-iana");
@@ -603,6 +603,7 @@ mod ietfdata_tests {
         assert_eq!(st[25].slug, "procmaterials");
         assert_eq!(st[26].slug, "chatlog");
         assert_eq!(st[27].slug, "polls");
+        assert_eq!(st[28].slug, "draft-stream-editorial");
 
         Ok(())
     }
