@@ -42,7 +42,7 @@ pub fn deserialize_time<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Err
     where D: Deserializer<'de>
 {
     let s = String::deserialize(deserializer)?;
-    Utc.datetime_from_str(&s, "%Y-%m-%dT%H:%M:%S%.f").map_err(serde::de::Error::custom)
+    Utc.datetime_from_str(&s, "%+").map_err(serde::de::Error::custom)
 }
 
 // =================================================================================================

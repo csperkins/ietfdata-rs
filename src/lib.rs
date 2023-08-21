@@ -338,7 +338,7 @@ mod ietfdata_tests {
         assert_eq!(e.resource_uri, EmailUri("/api/v1/person/email/csp@csperkins.org/".to_string()));
         assert_eq!(e.address,      "csp@csperkins.org");
         assert_eq!(e.person,       PersonUri("/api/v1/person/person/20209/".to_string()));
-        assert_eq!(e.time,         Utc.ymd(1970, 1, 1).and_hms(23, 59, 59));
+        assert_eq!(e.time,         Utc.ymd(1970, 1, 2).and_hms(07, 59, 59));
         assert_eq!(e.primary,      true);
         assert_eq!(e.active,       true);
 
@@ -355,7 +355,7 @@ mod ietfdata_tests {
         assert_eq!(e.resource_uri, EmailUri("/api/v1/person/email/csp@csperkins.org/".to_string()));
         assert_eq!(e.address,      "csp@csperkins.org");
         assert_eq!(e.person,       PersonUri("/api/v1/person/person/20209/".to_string()));
-        assert_eq!(e.time,         Utc.ymd(1970, 1, 1).and_hms(23, 59, 59));
+        assert_eq!(e.time,         Utc.ymd(1970, 1, 2).and_hms(07, 59, 59));
         assert_eq!(e.primary,      true);
         assert_eq!(e.active,       true);
 
@@ -409,7 +409,7 @@ mod ietfdata_tests {
         assert_eq!(p.name_from_draft, Some("Colin Perkins".to_string()));
         assert_eq!(p.ascii,           "Colin Perkins");
         assert_eq!(p.ascii_short,     Some("".to_string()));
-        assert_eq!(p.time,            Utc.ymd(2012,2,26).and_hms(0,3,54));
+        assert_eq!(p.time,            Utc.ymd(2012,2,26).and_hms(8,3,54));
         assert_eq!(p.photo,           Some("https://www.ietf.org/lib/dt/media/photo/csp-square.jpg".to_string()));
         assert_eq!(p.photo_thumb,     Some("https://www.ietf.org/lib/dt/media/photo/csp-square_GDMMZmn.jpg".to_string()));
         assert_eq!(p.user,            Some("".to_string()));
@@ -552,7 +552,7 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let st = dt.doc_states()?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(st.len(), 171);
+        assert_eq!(st.len(), 173);
         Ok(())
     }
 
@@ -574,7 +574,7 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let st = dt.doc_state_types()?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(st.len(), 29);
+        assert_eq!(st.len(), 30);
         assert_eq!(st[ 0].slug, "draft");
         assert_eq!(st[ 1].slug, "draft-iesg");
         assert_eq!(st[ 2].slug, "draft-iana");
@@ -604,6 +604,7 @@ mod ietfdata_tests {
         assert_eq!(st[26].slug, "chatlog");
         assert_eq!(st[27].slug, "polls");
         assert_eq!(st[28].slug, "draft-stream-editorial");
+        assert_eq!(st[29].slug, "statement");
 
         Ok(())
     }
