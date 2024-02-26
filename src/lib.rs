@@ -552,7 +552,7 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let st = dt.doc_states()?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(st.len(), 174);
+        assert_eq!(st.len(), 176);
         Ok(())
     }
 
@@ -574,7 +574,7 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let st = dt.doc_state_types()?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(st.len(), 34);
+        assert_eq!(st.len(), 35);
         assert_eq!(st[ 0].slug, "draft");
         assert_eq!(st[ 1].slug, "draft-iesg");
         assert_eq!(st[ 2].slug, "draft-iana");
@@ -609,6 +609,7 @@ mod ietfdata_tests {
         assert_eq!(st[31].slug, "bcp");
         assert_eq!(st[32].slug, "std");
         assert_eq!(st[33].slug, "fyi");
+        assert_eq!(st[34].slug, "narrativeminutes");
 
         Ok(())
     }
