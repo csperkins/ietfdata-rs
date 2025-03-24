@@ -371,13 +371,14 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let h  = dt.email_history_for_address("csp@isi.edu")?.collect::<Result<Vec<_>, _>>()?;
-        assert_eq!(h.len(), 6);
-        assert_eq!(h[0].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/167444/".to_string()));
-        assert_eq!(h[1].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/161025/".to_string()));
-        assert_eq!(h[2].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/128355/".to_string()));
-        assert_eq!(h[3].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/128350/".to_string()));
-        assert_eq!(h[4].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/71987/".to_string()));
-        assert_eq!(h[5].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/2090/".to_string()));
+        assert_eq!(h.len(), 7);
+        assert_eq!(h[0].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/305012/".to_string()));
+        assert_eq!(h[1].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/167444/".to_string()));
+        assert_eq!(h[2].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/161025/".to_string()));
+        assert_eq!(h[3].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/128355/".to_string()));
+        assert_eq!(h[4].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/128350/".to_string()));
+        assert_eq!(h[5].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/71987/".to_string()));
+        assert_eq!(h[6].resource_uri, HistoricalEmailUri("/api/v1/person/historicalemail/2090/".to_string()));
 
         Ok(())
     }
@@ -495,18 +496,17 @@ mod ietfdata_tests {
         let dt = Datatracker::new();
 
         let p  = dt.person_from_email_address("csp@csperkins.org")?;
-        println!("{:?}", p);
         let h  = dt.person_history(&p)?.collect::<Result<Vec<_>, _>>()?;
-        println!("{:?}", h);
-        assert_eq!(h.len(), 8);
-        assert_eq!(h[0].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/27668/".to_string()));
-        assert_eq!(h[1].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/24980/".to_string()));
-        assert_eq!(h[2].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/24978/".to_string()));
-        assert_eq!(h[3].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/17735/".to_string()));
-        assert_eq!(h[4].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/17734/".to_string()));
-        assert_eq!(h[5].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/11731/".to_string()));
-        assert_eq!(h[6].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/10878/".to_string()));
-        assert_eq!(h[7].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/127/".to_string()));
+        assert_eq!(h.len(), 9);
+        assert_eq!(h[0].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/85279/".to_string()));
+        assert_eq!(h[1].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/27668/".to_string()));
+        assert_eq!(h[2].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/24980/".to_string()));
+        assert_eq!(h[3].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/24978/".to_string()));
+        assert_eq!(h[4].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/17735/".to_string()));
+        assert_eq!(h[5].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/17734/".to_string()));
+        assert_eq!(h[6].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/11731/".to_string()));
+        assert_eq!(h[7].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/10878/".to_string()));
+        assert_eq!(h[8].resource_uri, HistoricalPersonUri("/api/v1/person/historicalperson/127/".to_string()));
 
         Ok(())
     }
