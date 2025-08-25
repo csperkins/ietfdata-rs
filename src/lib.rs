@@ -169,13 +169,6 @@ impl Datatracker {
     }
 
 
-    pub fn people_between<'a>(&'a self, start: DateTime<Utc>, before: DateTime<Utc>) -> DTResult<PaginatedList<'a, Person>> {
-        let s =  start.format("%Y-%m-%dT%H:%M:%S");
-        let b = before.format("%Y-%m-%dT%H:%M:%S");
-        let url = format!("https://datatracker.ietf.org/api/v1/person/person/?time__gte={}&time__lt={}", &s, &b);
-        PaginatedList::<'a, Person>::new(&self.connection, url)
-    }
-
 
     // ----------------------------------------------------------------------------------------------------------------------------
     // Datatracker API endpoints returning information about documents:
@@ -473,20 +466,6 @@ mod ietfdata_tests {
 
         let people = dt.people_with_name_containing("Perkins")?.collect::<Result<Vec<_>, _>>()?;
         assert_eq!(people.len(), 8); // As of 2022-05-02, there are 8 people named Perkins in the datatracker.
-
-        Ok(())
-    }
-
-
-    #[test]
-    fn test_people_between() -> DTResult<()> {
-        let dt = Datatracker::new();
-
-        let start = Utc.ymd(2019, 7, 1).and_hms( 0,  0,  0);
-        let until = Utc.ymd(2019, 7, 7).and_hms(23, 59, 59);
-        let people = dt.people_between(start, until)?.collect::<Result<Vec<_>, _>>()?;
-
-        assert_eq!(people.len(), 25); // There are 25 people in the tracker dated in the first week of July 2019
 
         Ok(())
     }
